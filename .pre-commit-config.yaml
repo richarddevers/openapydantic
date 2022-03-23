@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-ast
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: check-xml
+      - id: check-toml
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-vcs-permalinks
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: debug-statements
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: fix-encoding-pragma
+        args: [--remove]
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+        args: [--fix=auto]
+      - id: requirements-txt-fixer
+  # - repo: local
+  #   hooks:
+  #     - id: nox
+  #       name: nox
+  #       entry: poetry run nox
+  #       language: python
+  #       language_version: python3
+  #       always_run: true
+  #       fail_fast: true
+  #       pass_filenames: false

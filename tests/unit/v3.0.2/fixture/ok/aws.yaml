@@ -1,0 +1,1338 @@
+openapi: 3.0.2
+security:
+  - awsAccountId: []
+  - awsAccessKeyId: []
+  - awsSecretAccessKey: []
+  - awsSessionToken: []
+tags:
+  - name: transit-gateway-multicast-group-member
+    description: TransitGatewayMulticastGroupMember Resource Actions
+    externalDocs:
+      description: Find out more about our TransitGatewayMulticastGroupMember
+      url: "https://aws.amazon.com"
+info:
+  version: 1.0.0
+  title: "@aws-api/aws-api-cli"
+  description: A place for aws sdk cli aliases and convenience methods
+  termsOfService: "http://aws.com"
+  contact:
+    name: samuelbirk
+    url: "http://aws.com"
+    email: support@aws-api.io
+  license:
+    name: ISC
+    url: "http://aws.com"
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/aws-api/aws-api-v2/1.0.0
+  - url: "https://development.gateway.aws-api.io"
+    description: development server
+  - url: "https://stage.gateway.aws-api.io"
+    description: stage server
+  - url: "https://gateway.aws-api.io"
+    description: production server
+paths:
+  /ec2/transit-gateway-multicast-group-member:
+    post:
+      tags:
+        - transit-gateway-multicast-group-member
+      description: CREATE
+      summary: "[CREATE]: Create a transit-gateway-multicast-group-member with the specified parameters"
+      operationId: "create:EC2.transit-gateway-multicast-group-member"
+      requestBody:
+        description: RegisterTransitGatewayMulticastGroupMembersRequest
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transit_gateway_multicast_domain_id:
+                  description: The ID of the transit gateway multicast domain.
+                  type: string
+                group_ip_address:
+                  description: The IP address assigned to the transit gateway multicast group.
+                  type: string
+                network_interface_ids:
+                  description: The group members' network interface IDs to register with the transit gateway multicast group.
+                  type: array
+                  items:
+                    type: string
+                dry_run:
+                  description: "Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation."
+                  type: boolean
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "202":
+          description: "Pending completion: The request is taking too long. You can subscribe to the websocket with the returned x-pending-request-websocket header information or poll the x-pending-request-url for updates. [more](https://gitlab.com/amazon-aws-birksb/aws-api/aws-api-cli.git)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "400":
+          description: GeneralError
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: "In the case of a request that reached the service, this value contains the response status code."
+                    type: number
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: Unauthorized
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 401
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "404":
+          description: NotFound
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: NotFound
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 404
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "422":
+          description: UnprocessableEntity
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: UnprocessableEntity
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 422
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+    get:
+      tags:
+        - transit-gateway-multicast-group-member
+      summary: "[LIST]: Get a list of transit-gateway-multicast-group-member that match provided parameters."
+      operationId: "list:EC2.transit-gateway-multicast-group-member"
+      parameters:
+        - name: transit_gateway_multicast_domain_id
+          description: The ID of the transit gateway multicast domain.
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filters
+          description: "One or more filters. The possible values are:    group-ip-address - The IP address of the transit gateway multicast group.    is-group-member - The resource is a group member. Valid values are true | false.    is-group-source - The resource is a group source. Valid values are true | false.    member-type - The member type. Valid values are igmp | static.    resource-id - The ID of the resource.    resource-type - The type of resource. Valid values are vpc | vpn | direct-connect-gateway | tgw-peering.    source-type - The source type. Valid values are igmp | static.    state - The state of the subnet association. Valid values are associated | associated | disassociated | disassociating.    subnet-id - The ID of the subnet.    transit-gateway-attachment-id - The id of the transit gateway attachment."
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                Name:
+                  description: The name of the filter. Filter names are case-sensitive.
+                  type: string
+                Values:
+                  description: The filter values. Filter values are case-sensitive.
+                  type: array
+                  items:
+                    type: string
+        - name: max_results
+          description: "The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned nextToken value."
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: next_token
+          description: The token for the next page of results.
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: dry_run
+          description: "Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation."
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    group_ip_address:
+                      description: The IP address assigned to the transit gateway multicast group.
+                      type: string
+                    transit_gateway_attachment_id:
+                      description: The ID of the transit gateway attachment.
+                      type: string
+                    subnet_id:
+                      description: The ID of the subnet.
+                      type: string
+                    resource_id:
+                      description: The ID of the resource.
+                      type: string
+                    resource_type:
+                      description: "The type of resource, for example a VPC attachment."
+                      type: string
+                    resource_owner_id:
+                      description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                      type: string
+                    network_interface_id:
+                      description: The ID of the transit gateway attachment.
+                      type: string
+                    group_member:
+                      description: Indicates that the resource is a transit gateway multicast group member.
+                      type: boolean
+                    group_source:
+                      description: Indicates that the resource is a transit gateway multicast group member.
+                      type: boolean
+                    member_type:
+                      description: "The member type (for example, static)."
+                      type: string
+                    source_type:
+                      description: The source type.
+                      type: string
+                description: Information about the transit gateway multicast group.
+        "202":
+          description: "Pending completion: The request is taking too long. You can subscribe to the websocket with the returned x-pending-request-websocket header information or poll the x-pending-request-url for updates. [more](https://gitlab.com/amazon-aws-birksb/aws-api/aws-api-cli.git)"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    group_ip_address:
+                      description: The IP address assigned to the transit gateway multicast group.
+                      type: string
+                    transit_gateway_attachment_id:
+                      description: The ID of the transit gateway attachment.
+                      type: string
+                    subnet_id:
+                      description: The ID of the subnet.
+                      type: string
+                    resource_id:
+                      description: The ID of the resource.
+                      type: string
+                    resource_type:
+                      description: "The type of resource, for example a VPC attachment."
+                      type: string
+                    resource_owner_id:
+                      description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                      type: string
+                    network_interface_id:
+                      description: The ID of the transit gateway attachment.
+                      type: string
+                    group_member:
+                      description: Indicates that the resource is a transit gateway multicast group member.
+                      type: boolean
+                    group_source:
+                      description: Indicates that the resource is a transit gateway multicast group member.
+                      type: boolean
+                    member_type:
+                      description: "The member type (for example, static)."
+                      type: string
+                    source_type:
+                      description: The source type.
+                      type: string
+                description: Information about the transit gateway multicast group.
+        "400":
+          description: GeneralError
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: "In the case of a request that reached the service, this value contains the response status code."
+                    type: number
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: Unauthorized
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 401
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "404":
+          description: NotFound
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: NotFound
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 404
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "422":
+          description: UnprocessableEntity
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: UnprocessableEntity
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 422
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+  ? "/ec2/transit-gateway-multicast-group-member/{transit_gateway_multicast_domain_id}-{group_ip_address}-{network_interface_id}"
+  : get:
+      tags:
+        - transit-gateway-multicast-group-member
+      summary: "[READ]: Get a single transit-gateway-multicast-group-member by the primary identifier."
+      operationId: "read:EC2.transit-gateway-multicast-group-member"
+      parameters:
+        - name: transit_gateway_multicast_domain_id
+          description: The ID of the transit gateway multicast domain.
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_ip_address
+          description: The Group IP Address for the group member.
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: network_interface_id
+          description: The NetworkInterfaceId for the group member.
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "202":
+          description: "Pending completion: The request is taking too long. You can subscribe to the websocket with the returned x-pending-request-websocket header information or poll the x-pending-request-url for updates. [more](https://gitlab.com/amazon-aws-birksb/aws-api/aws-api-cli.git)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "400":
+          description: GeneralError
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: "In the case of a request that reached the service, this value contains the response status code."
+                    type: number
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: Unauthorized
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 401
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "404":
+          description: NotFound
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: NotFound
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 404
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "422":
+          description: UnprocessableEntity
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: UnprocessableEntity
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 422
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+    delete:
+      tags:
+        - transit-gateway-multicast-group-member
+      summary: "[DELETE]: Delete a single transit-gateway-multicast-group-member by the primary identifier."
+      operationId: "delete:EC2.transit-gateway-multicast-group-member"
+      parameters:
+        - name: transit_gateway_multicast_domain_id
+          description: The ID of the transit gateway multicast domain.
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_ip_address
+          description: The IP address assigned to the transit gateway multicast group.
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: network_interface_id
+          description: The IDs of the group members' network interfaces.
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "202":
+          description: "Pending completion: The request is taking too long. You can subscribe to the websocket with the returned x-pending-request-websocket header information or poll the x-pending-request-url for updates. [more](https://gitlab.com/amazon-aws-birksb/aws-api/aws-api-cli.git)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_ip_address:
+                    description: The IP address assigned to the transit gateway multicast group.
+                    type: string
+                  transit_gateway_attachment_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  subnet_id:
+                    description: The ID of the subnet.
+                    type: string
+                  resource_id:
+                    description: The ID of the resource.
+                    type: string
+                  resource_type:
+                    description: "The type of resource, for example a VPC attachment."
+                    type: string
+                  resource_owner_id:
+                    description: The ID of the AWS account that owns the transit gateway multicast domain group resource.
+                    type: string
+                  network_interface_id:
+                    description: The ID of the transit gateway attachment.
+                    type: string
+                  group_member:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  group_source:
+                    description: Indicates that the resource is a transit gateway multicast group member.
+                    type: boolean
+                  member_type:
+                    description: "The member type (for example, static)."
+                    type: string
+                  source_type:
+                    description: The source type.
+                    type: string
+                description: Information about the transit gateway multicast group.
+        "400":
+          description: GeneralError
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: "In the case of a request that reached the service, this value contains the response status code."
+                    type: number
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: Unauthorized
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 401
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "404":
+          description: NotFound
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: NotFound
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 404
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+        "422":
+          description: UnprocessableEntity
+          content:
+            application/json; charset=utf-8:
+              schema:
+                properties:
+                  code:
+                    description: A unique short code representing the error that was emitted.
+                    type: string
+                    example: UnprocessableEntity
+                  message:
+                    description: A longer human readable error message.
+                    type: string
+                  retryable:
+                    description: Whether the error message is retryable.
+                    type: boolean
+                  statusCode:
+                    description: A unique short code representing the error that was emitted.
+                    type: number
+                    example: 422
+                  time:
+                    description: The date time object when the error occurred.
+                    type: string
+                    format: date-time
+                  hostname:
+                    description: Set when a networking error occurs to easily identify the endpoint of the request.
+                    type: string
+                  region:
+                    description: Set when a networking error occurs to easily identify the region of the request.
+                    type: string
+                  retryDelay:
+                    description: Amount of time (in seconds) that the request waited before being resent.
+                    type: number
+                  requestId:
+                    description: The unique request ID associated with the response.
+                    type: string
+                  extendedRequestId:
+                    description: Second request ID associated with the response from S3.
+                    type: string
+                  cfId:
+                    description: CloudFront request ID associated with the response.
+                    type: string
+                  originalError:
+                    description: The original error which caused this Error
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      message:
+                        type: string
+                      stack:
+                        type: string
+components:
+  securitySchemes:
+    awsAccountId:
+      type: apiKey
+      name: X-AWS-ACCOUNT-ID
+      in: header
+    awsAccessKeyId:
+      type: apiKey
+      name: X-AWS-ACCESS-KEY-ID
+      in: header
+    awsSecretAccessKey:
+      type: apiKey
+      name: X-AWS-SECRET-ACCESS-KEY
+      in: header
+    awsSessionToken:
+      type: apiKey
+      name: X-AWS-SESSION-TOKEN
+      in: header

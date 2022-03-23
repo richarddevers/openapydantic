@@ -1,0 +1,1161 @@
+openapi: 3.0.0
+info:
+  title: PICO Portal REST API Endpoints
+  description: |
+    PICO Portal is a systematic review platform that leverages artificial intelligence to accelerate research and innovation. PICO Portal assists you with identifying relevant citations, de-duplication, screening, full-text review, and evidence mapping in your next systematic review.
+    <p>
+    This documentation provides a list of all the endpoints that you can use to communicate with the PICO Portal server and try out the features avaiable to the users.
+
+  version: 1.0.0
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: For Testing Purpose
+    url: http://arcticdev.picoportal.net
+
+security:
+  - BasicAuth: []
+
+tags:
+  - name: PICO Portal
+    description: All Endpoints
+
+paths:
+  "/api/v2/convert":
+    post:
+      tags:
+        - PICO Portal
+      summary: Convert to CSV
+      description: |
+        Allows you to parse a citation file and generate a CSV file. The following file formats are supported as source:
+        * CINAHL
+        * CLINICALTRIALS
+        * COCHRANE
+        * CORD
+        * DISTILLERSR
+        * EBSCO
+        * EMBASE
+        * ENDNOTE
+        * FHIR
+        * GENERIC
+        * OVID
+        * PICOPORTAL
+        * PUBMED
+        * WOS
+        * ZOTERO
+      requestBody:
+        description: Upload a File for Conversion
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ConvertCSV"
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertCSVResp"
+
+  "/api/v2/upload-template":
+    post:
+      tags:
+        - PICO Portal
+      summary: Upload Excel Template
+      description: |
+        Parse the contents of the uploaded Excel template contents and return canonical CSV.
+      requestBody:
+        description: Upload a File
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UploadTemp"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>id</b>
+            * <b>reference</b>
+            * <b>first_author</b>
+            * <b>pub_year</b>
+            * <b>pub_type</b>
+            * <b>authors</b>
+            * <b>pub_date</b>
+            * <b>title</b>
+            * <b>abstract</b>
+            * <b>publication</b>
+            * <b>volume_issue</b>
+            * <b>pages</b>
+            * <b>url</b>
+            * <b>language</b>
+            * <b>country</b>
+            * <b>doi</b>
+            * <b>issn_isbn</b>
+            * <b>source</b>
+            * <b>source_id</b>
+            * <b>external_reference_id</b>
+            * <b>article_metadata</b>
+            * <b>is_include</b>
+            * <b>exclude_reason</b>
+            * <b>is_duplicate</b>
+            * <b>is_primary</b>
+            * <b>tags</b>
+            * <b>notes</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadTempResp"
+
+  "/api/v2/integrity-check":
+    post:
+      tags:
+        - PICO Portal
+      summary: Integrity Check
+      description: |
+        Scans the uploaded file and performs integrity checks for the canonical data in the input file.
+      requestBody:
+        description: Upload a File For Integrity Check
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/IntegrityCheck"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>article_id</b>
+            * <b>note</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrityCheckResp"
+
+  "/api/v2/check-duplicates":
+    post:
+      tags:
+        - PICO Portal
+      summary: Find Duplicates
+      description: |
+        Checks for duplicate citations in the files that you upload and marks the duplicate in the output file.
+      requestBody:
+        description: Upload a File to Check Duplicates
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CheckDuplicates"
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckDuplicatesResp"
+
+  "/api/v2/check-rct":
+    post:
+      tags:
+        - PICO Portal
+      summary: Classify RCT and Non-RCT
+      description: |
+        Scans the provided articles and classifies them into RCT and non-RCT studies.
+      requestBody:
+        description: Upload a File for Classification
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ClassifyRCT"
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassifyRCTResp"
+
+  "/api/v2/pdf-url":
+    post:
+      tags:
+        - PICO Portal
+      summary: Get Full-Text PDF URL
+      description: |
+        Scans the articles in the input file and gets the URL of the full-text PDF of the articles using the DOI.
+      requestBody:
+        description: Upload a File with Citations
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PDFURL"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>source</b>
+            * <b>key</b>
+            * <b>doi</b>
+            * <b>open_access</b>
+            * <b>url</b>
+            * <b>is_pdf</b>
+            * <b>ill_url</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PDFURLResp"
+
+  "/api/v2/pico-tags":
+    post:
+      tags:
+        - PICO Portal
+      summary: Generate PICO Tags
+      description: |
+        Scans the input file and generates the tags for PICO groups from the title and abstract.
+      requestBody:
+        description: Upload a File with Citations
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/GetTags"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>article_id</b>
+            * <b>title_tags</b>
+            * <b>abstract_tags</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTagsResp"
+
+  "/api/v2/topkeys":
+    post:
+      tags:
+        - PICO Portal
+      summary: Get Top Keywords
+      description: |
+        Scans the uploaded articles and extracts the top keywords from the title and the abstract of the articles.
+      requestBody:
+        description: Upload a File To Get Keywords
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TopKeys"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>keyword</b>
+            * <b>PICO_label</b>
+            * <b>frequency</b>
+            * <b>article_frequency</b>
+
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopKeysResp"
+
+  "/api/v2/highlight":
+    post:
+      tags:
+        - PICO Portal
+      summary: Highlight PICO Tags
+      description: |
+        Converts the title and abstract to HTML with highlighted sections based on PICO tags.
+      requestBody:
+        description: Upload a File with Citations
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Highlight"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>article_id</b>
+            * <b>title_html</b>
+            * <b>abstract_html</b>
+            * <b>metadata_html</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HighlightResp"
+
+  "/api/v2/kmap":
+    post:
+      tags:
+        - PICO Portal
+      summary: Map Keywords
+      description: |
+        Scans the citations file and the  keywords files and maps the keywords to the articles that contain those keywords.
+      requestBody:
+        description: Upload a File with Citations
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/MapKey"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>keyword_id</b>
+            * <b>article_frequency</b>
+            * <b>articles</b>
+            * <b>article_id</b>
+            * <b>kmap_tags</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapKeyResp"
+
+  "/api/v2/export":
+    post:
+      tags:
+        - PICO Portal
+      summary: Export Citations
+      description: |
+        Exports the citations in the input file into  another citation format.
+      requestBody:
+        description: Upload a File with Citations
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ExportCitation"
+        required: true
+      responses:
+        "200":
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportCitationResp"
+
+  "/api/v2/review-order":
+    post:
+      tags:
+        - PICO Portal
+      summary: Review Order
+      description: |
+        Scans all the input files and generates scores for ordering the articles to review.
+      requestBody:
+        description: Provide Input File URLs
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ReviewOrder"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>article_id</b>
+            * <b>score</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewOrderResp"
+
+  "/api/v2/data-sync":
+    post:
+      tags:
+        - PICO Portal
+      summary: Data Sync
+      description: |
+        Incremental updates of Covid Records using the CORD-19 Dataset.
+      requestBody:
+        description: Provide Input File
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/DataSync"
+        required: true
+      responses:
+        "200":
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataSyncResp"
+
+  "/api/v2/user-analytics":
+    post:
+      tags:
+        - PICO Portal
+      summary: User Analytics
+      description: |
+        Generate performance metrics for users based on the screening data.
+      requestBody:
+        description: Provide Input File
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserAnalytics"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>user_id</b>
+            * <b>is_judicator</b>
+            * <b>is_fulltext_review</b>
+            * <b>includes</b>
+            * <b>excludes</b>
+            * <b>total</b>
+            * <b>total_duration_hrs</b>
+            * <b>review_rate</b>
+            * <b>same_as_consensus</b>
+            * <b>last_screening_time</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAnalyticsResp"
+
+  "/api/v2/ai-screening":
+    post:
+      tags:
+        - PICO Portal
+      summary: AI Screening
+      description: |
+        Perform AI based screening of articles for inclusion in a project.
+      requestBody:
+        description: Provide Input File
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AIScreening"
+        required: true
+      responses:
+        "200":
+          description: |
+            The CSV file that is generated as the output after processing will contain the following columns.
+            * <b>article_id</b>
+            * <b>is_include</b>
+            * <b>exclude_reason</b>
+            * <b>score</b>
+            * <b>inclusion_threshold</b>
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIScreeningResp"
+
+components:
+  schemas:
+    ConvertCSV:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the file that you want to convert.
+        source:
+          type: string
+          description: The source of the input file. If this value is not present in the request, PICO Portall will determine the source and the format and process accordingly. You could also pass a zipped folder for the supported files in .zip or .tar, .tar.gz, .tar.xz formats.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        source: Data Source
+
+    ConvertCSVResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    UploadTemp:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: CSV file of the records/articles page from the Excel Template.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+
+    UploadTempResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    CheckDuplicates:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the file which has all the citations.
+        skip_unique:
+          type: integer
+          enum: [1, 0]
+          description: Configure if you want to skip articles which are not grouped to any other article.
+        check_publication:
+          type: integer
+          enum: [1, 0]
+          description: Configure if you want to use algorithm to manually check publications of duplicates.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        skip_unique: 1
+        check_publication: 1
+
+    CheckDuplicatesResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        skip_unique:
+          type: integer
+        check_publication:
+          type: integer
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        skip_unique: 1
+        check_publication: 1
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    ClassifyRCT:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the file which has all the citations.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+
+    ClassifyRCTResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dde76454-feb4-4cdb-8ba4-2d2d31c440f2"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    TopKeys:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+        - keyword_count
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the file that you want to convert.
+        keyword_count:
+          type: integer
+          description: Number of keywords to be generated.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        keyword_count: 25
+
+    PDFURL:
+      type: object
+      required:
+        - input_file_url
+      properties:
+        input_file_url:
+          type: string
+          description: Provide the URL of the file that has all the citations of which you want to get the URLs.
+        source:
+          type: string
+          description: API Provider that should be used for fetching the PDF URLsIt should be either <b>unpaywall</b> or <b>libkey</b>. If this parameter is not set, then it defaults to unpaywall.
+        project_id:
+          type: string
+          description: Required only if the source is mentioned as <b>libkey</b>.
+        key:
+          type: string
+          description: LibKey library ID of the project's institution. REQUIRED only when provider is <b>libkey</b>.
+        token:
+          type: string
+          description: LibKey Access Token of the project's institution. REQUIRED only when provider is <b>libkey</b>.
+      example:
+        input_file_url: http://input-file-url
+        source: unpaywall
+        project_id: 12345
+        key: 789
+        token: libkey-token-string
+
+    PDFURLResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        key:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        source:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+        token:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        key: "789"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+        token: "libkey-token-string"
+
+    TopKeysResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    IntegrityCheck:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that has all the citations.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+
+    IntegrityCheckResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    GetTags:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that has all the citations.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+
+    GetTagsResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    Highlight:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that has all the citations.
+        headings_file_url:
+          type: string
+          description: Provide the URL of the CSV file that includes all the paragraph headings.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        headings_file_url: http://headings-csv-file-url
+
+    HighlightResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    MapKey:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+        - keywords_file
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that has all the citations.
+        keywords_file:
+          type: string
+          description: Provide the URL of the CSV file that includes all the keywords to be mapped. Necessary column names- <b>keyword_id</b>, <b>name</b>.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        keywords_file: http://keywords-file-url
+
+    MapKeyResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        keywords_file:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        keywords_file: "http://keyword-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    ExportCitation:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+        - file_format
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that has all the citations.
+        file_format:
+          type: string
+          description: |
+            Output format of the Citation file. Following are the supported formats:
+            * RIS
+            * BIBTEX
+            * ENDNOTE
+            * FHIR_JSON
+            * PUBMED
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        headings_file_url: RIS
+
+    ExportCitationResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        file_format:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://input-file-url"
+        file_format: "RIS"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    ReviewOrder:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+        - picotags_file
+        - kmap_file
+        - screening_file
+        - sorting_order
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: Provide the URL of the CSV file that contains all the keywords.
+        picotags_file:
+          type: string
+          description: The PICO Tags generated for the articles as a CSV file.
+        kmap_file:
+          type: string
+          description: CSV file with KMap for the project.
+        screening_file:
+          type: string
+          description: CSV file containing the AI Screening results.
+        sorting_order:
+          type: string
+          description: |
+            The order to sort the articles. It should one of four values:
+            * <b>include_first</b>
+            * <b>exclude_first</b>
+            * <b>low_confidence</b>
+            * <b>random</b>
+      example:
+        project_id: 123456
+        input_file_url: http://keyowrd-file-url
+        picotags_file: RIS
+        kmap_file: 123456
+        screening_file: http://ai-screening-file-url
+        sorting_order: include_first
+
+    ReviewOrderResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        picotags_file:
+          type: string
+        kmap_file:
+          type: string
+        screening_file:
+          type: string
+        sorting_order:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "http://keyword-file-url"
+        picotags_file: "http://picotags-file-url"
+        kmap_file: "http://kmap-file-url"
+        screening_file: "http://screening-file"
+        sorting_order: "http://input-file-url"
+        message: "Upload successful"
+        project: "123456"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    DataSync:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: CSV input file with data for the requested columns.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+
+    DataSyncResp:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        input_file_url:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: "OK"
+        message: "Upload successful"
+        project: "123456"
+        input_file_url: "http://keyword-file-url"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    UserAnalytics:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: CSV input file with data for the requested columns.
+        is_project_analytics:
+          type: integer
+          description: Report Project Analytics instead of user analytics.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        is_project_analytics: 1
+
+    UserAnalyticsResp:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        input_file_url:
+          type: string
+        project:
+          type: string
+        is_project_analytics:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: "OK"
+        message: "Upload successful"
+        input_file_url: "https://input-file-url"
+        project: "123456"
+        is_project_analytics: "1"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+    AIScreening:
+      type: object
+      required:
+        - project_id
+        - input_file_url
+        - screening_file_url
+      properties:
+        project_id:
+          type: string
+          description: Provide the unique project ID.
+        input_file_url:
+          type: string
+          description: CSV input file with data for the requested columns.
+        screening_file_url:
+          type: string
+          description: CSV input file with data for the requested columns.
+      example:
+        project_id: 123456
+        input_file_url: http://input-file-url
+        screening_file_url: http://screening_file_url
+
+    AIScreeningResp:
+      type: object
+      properties:
+        input_file_url:
+          type: string
+        screening_file_url:
+          type: string
+        message:
+          type: string
+        project:
+          type: string
+        status:
+          type: string
+        task_id:
+          type: string
+        timestamp:
+          type: string
+      example:
+        input_file_url: "https://input-file-url"
+        screening_file_url: "https://screening_file_url"
+        project: "123456"
+        message: "Upload successful"
+        status: "OK"
+        task_id: "dd0cee0f-1879-475f-9af4-a4ed71025adc"
+        timestamp: "Mon, 14 Oct 2019 10:03:53 GMT"
+
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic

@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "openapydantic"
+version = "0.1.1"
+description = "openapi specification parser based on pydantic"
+authors = ["Richard Devers <ritchiedev25@gmail.com>"]
+include = ["openapydantic/py.typed"]
+repository = "https://github.com/richarddevers/openapydantic"
+license = "MIT"
+readme = "README.md"
+keywords = ["openapi","swagger","pydantic", "api", "rest"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyyaml = ">=5.3.1"
+types-PyYAML = "^6.0.5"
+pydantic = "^1.9.0"
+email-validator = "^1.1.3"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+isort = "^5.10.1"
+ipdb = "^0.13.9"
+pytest = "^7.1.1"
+nox = "^2022.1.7"
+flake8 = "^4.0.1"
+nox-poetry = "^0.9.0"
+bandit = "^1.7.4"
+pre-commit = "^2.17.0"
+flake8-bugbear = "^22.1.11"
+devtools = "^0.8.0"
+safety = "^1.10.3"
+pytest-cov = "^3.0.0"
+pytest-asyncio = "^0.18.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+force_single_line = true

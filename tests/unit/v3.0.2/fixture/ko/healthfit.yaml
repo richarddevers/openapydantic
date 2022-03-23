@@ -1,0 +1,2057 @@
+openapi: 3.0.2
+info:
+  title: Health Fit
+  description: API Documentation
+  contact:
+    name: BE
+    email: altaBE@mail.com
+  version: '1.0'
+servers:
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/aaryadewangga/Final_Project/1.0
+  - url: https://aaryadewangga.cloud.okteto.net/{entity}
+    variables:
+      entity:
+        default: users
+        enum:
+          - admin
+          - users
+          - users goals
+          - users history
+          - foods
+          - menus
+tags:
+  - name: Admin
+    description: Admin Register/Update/Delete
+  - name: Users
+    description: Users Register/Update/Delete
+  - name: Users Goals
+    description: Users Goals
+  - name: User History
+    description: User History of Foods/Goals
+  - name: Foods
+    description: Foods Methods
+  - name: Menus
+    description: Menu
+paths:
+  /admin/register:
+    post:
+      summary: Register New Admin
+      tags:
+        - Admin
+      description: Get a New Account
+      requestBody:
+        required: true
+        description: Create Account with valid schema
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                gender:
+                  type: string
+                  enum:
+                    - Pria
+                    - Wanita
+              example:
+                name: test
+                email: test@mail.com
+                password: test
+                gender: Pria
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user_uid:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      gender:
+                        type: string
+                        enum:
+                          - Pria
+                          - Wanita
+                example:
+                  code: 200
+                  message: success to get new Account
+                  data:
+                    user_uid: jksfbkjfkjabruablnlab
+                    name: test
+                    email: test@mail.com
+                    gender: Pria
+        '400':
+          $ref: '#/components/responses/400'
+  /admin/login:
+    post:
+      tags:
+        - Admin
+      summary: Login admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User terautorisasi
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 200
+                message: Success login, get a new token
+                data:
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        '500':
+          description: Invalid Authorization
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 500
+                message: There are something problem on server
+                data:
+  /users/register:
+    post:
+      summary: Register New Users
+      tags:
+        - Users
+      description: Get a New Account
+      requestBody:
+        required: true
+        description: Create Account with valid schema
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                gender:
+                  type: string
+                  enum:
+                    - male
+                    - female
+              example:
+                name: test
+                email: test@mail.com
+                password: test
+                gender: male
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user_uid:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      gender:
+                        type: string
+                        enum:
+                          - male
+                          - female
+                example:
+                  code: 200
+                  message: success to get new Account
+                  data:
+                    user_uid: jksfbkjfkjabruablnlab
+                    name: test
+                    email: test@mail.com
+                    gender: male
+                    roles: false
+                    image: ""
+        '400':
+          $ref: '#/components/responses/400'
+  /users/login:
+    post:
+      tags:
+        - Users
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User terautorisasi
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 200
+                message: USERS - berhasil masuk, mendapatkan token baru
+                data:
+                  user_uid: jbeakbfkajlfablbalenvlabvljdvjlbjl
+                  name: test
+                  email: test@mail.com
+                  rules: false
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                  goal_active: false
+                  goal_expired: false
+        '500':
+          description: Invalid Authorization
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 500
+                message: There are something problem on server
+                data:
+  /users:
+    get:
+        summary: User Profile
+        tags:
+          - Users
+        description: User Profile
+        security:
+          - bearerAuth: []
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                      example: 200
+                    message :
+                      type: string
+                      example: Success to get users profile
+                    data:
+                      type: object
+                      properties:
+                        user_uid:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        password:
+                          type: string
+                          format: password
+                        gender:
+                          type: string
+                          enum:
+                            - Pria
+                            - Wanita
+                      example:
+                          user_uid: jksfbkjfkjabruablnlab
+                          name: test
+                          email: test@mail.com
+                          gender: male
+                          roles: false
+                          image: ""
+                          goal: []
+                          history: []
+    put:
+      summary: Update By ID
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/UserInput'
+            example:
+              name: Test Update
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/SuccessSingleResponse'
+              example:
+                code: 200
+                message: Success to Update User Data
+        '204':
+          $ref: '#/components/responses/204'
+    delete:
+      tags:
+        - Users
+      summary: delete user data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/SuccessSingleResponse'
+              example:
+                code: 200
+                message: success to delete user data
+  /users/goals:
+    post:
+      summary: Register New Goals For Users
+      tags:
+        - Users Goals
+      description: Get a New Account
+      security:
+          - bearerAuth: []
+      requestBody:
+        required: true
+        description: Create Account with valid schema
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                height:
+                  type: integer
+                weight:
+                  type: integer
+                age:
+                  type: integer
+                daily_active:
+                  type: string
+                  enum:
+                    - not active
+                    - little active
+                    - quite active
+                    - active
+                    - very active
+                weight_target:
+                  type: integer
+                range_time:
+                  type: integer
+                target:
+                  type: string
+                  enum:
+                    - lose weight
+                    - gain weiht
+              example:
+                height: 175
+                weight: 75
+                age: 24
+                daily_active: not active
+                weight_target: 5
+                range_time: 30
+                target: lose weight
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      user_uid:
+                        type: string
+                      height:
+                        type: integer
+                      weight:
+                        type: integer
+                      age:
+                        type: integer
+                      range_time:
+                        type: integer
+                example:
+                    height: 175
+                    weight: 75
+                    age: 24
+                    daily_active: not active
+                    weight_target: 5
+                    range_time: 30
+                    target: lose weight
+                    status: "active"
+                    createdAt: "2022-03-20T10:26:25.094Z"
+        '400':
+          $ref: '#/components/responses/400'
+    get:
+        summary: Get all Goals
+        tags:
+          - Users Goals
+        description: User Profile
+        security:
+          - bearerAuth: []
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                      example: 200
+                    message :
+                      type: string
+                      example: Success to get goals users profile
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            calories:
+                              type: integer
+                            category:
+                              type: string
+                              enum:
+                                - fruit
+                                - drink
+                                - junk food
+                                - food
+                                - snack
+                            image :
+                              type: string
+                        example:
+                          - height: 175
+                            weight: 75
+                            age: 24
+                            daily_active: not active
+                            weight_target: 5
+                            range_time: 30
+                            target: lose weight
+                            status: "active"
+                            createdAt: "2022-03-20T10:26:25.094Z"
+                          - height: 175
+                            weight: 75
+                            age: 24
+                            daily_active: not active
+                            weight_target: 5
+                            range_time: 30
+                            target: lose weight
+                            status: "not active"
+                            createdAt: "2022-12-20T10:26:25.094Z"
+  /users/goals/:goal_uid:
+    get:
+        summary: Goals by User Profile
+        tags:
+          - Users Goals
+        description: User Profile
+        security:
+          - bearerAuth: []
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                      example: 200
+                    message :
+                      type: string
+                      example: Success to get goals users profile
+                    data:
+                      type: object
+                      properties:
+                          id:
+                            type: integer
+                          user_uid:
+                            type: string
+                          height:
+                            type: integer
+                          weight:
+                            type: integer
+                          age:
+                            type: integer
+                          range_time:
+                            type: integer
+                      example:
+                          height: 175
+                          weight: 75
+                          age: 24
+                          daily_active: not active
+                          weight_target: 5
+                          range_time: 30
+                          target: lose weight
+                          status: "active"
+                          createdAt: "2022-03-20T10:26:25.094Z"
+    put:
+      summary: Update By ID
+      tags:
+        - Users Goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/UserInput'
+            example:
+              height: 165
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/SuccessSingleResponse'
+              example:
+                code: 200
+                message: Success to Update Goals User Data
+        '204':
+          $ref: '#/components/responses/204'
+    delete:
+      tags:
+        - Users Goals
+      summary: delete goals user data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/SuccessSingleResponse'
+              example:
+                code: 200
+                message: success to delete goals user data
+  /users/goals/cancel:
+    put:
+      summary: Update By ID
+      tags:
+        - Users Goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/UserInput'
+            example:
+              status: cancel
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/SuccessSingleResponse'
+              example:
+                code: 200
+                message: Success to Update Goals User Data
+        '204':
+          $ref: '#/components/responses/204'
+  /userhistories:
+    post:
+      summary: Add / Create User History Data
+      tags:
+        - User History
+      requestBody:
+        required: true
+        description: Create / Add User history Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                calories:
+                  type: integer
+                category:
+                  type: string
+                  enum:
+                    - fruit
+                    - drink
+                    - junk food
+                    - food
+                    - snack
+                image :
+                  type: string
+              example:
+                menu_uid: kahebajebvkabvkab
+                goal_uid: ehfayvibaubfkabkj
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      calories:
+                        type: integer
+                      category:
+                        type: string
+                        enum:
+                          - fruit
+                          - drink
+                          - junk food
+                          - food
+                          - snack
+                      image :
+                        type: string
+                example:
+                  code: 201
+                  message: sukses menambahkan foods baru
+                  data:
+                    user_uid: fbakfbakjbfkajbej
+                    useer_history_uid: jdawdjafkaebfkk
+                    goal_uid: ehfayvibaubfkabkj
+                    menu_uid: kahebajebvkabvkab
+                    menu:
+                      - menu_uid: kahebajebvkabvkab
+                        menu_category: "breakfast"
+                        total_calories: 488
+                        created_by: admin
+                        count: 0,
+                        foods:
+                          - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                            name: soto betawi
+                            calories: 244
+                            energy: 244
+                            carbohidrate: 180
+                            protein: 123
+                            unit: bowl
+                            unit_value: 1
+                            food_category: food
+                            image: "soto.png"
+                          - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                            name: soto betawi
+                            calories: 244
+                            energy: 244
+                            carbohidrate: 180
+                            protein: 123
+                            unit: bowl
+                            unit_value: 1
+                            food_category: food
+                            image: "soto.png"
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+        summary: History by User Profile
+        tags:
+          - User History
+        description: User Profile
+        security:
+          - bearerAuth: []
+        responses:
+         '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        calories:
+                          type: integer
+                        category:
+                          type: string
+                          enum:
+                            - fruit
+                            - drink
+                            - junk food
+                            - food
+                            - snack
+                        image :
+                          type: string
+                  example:
+                    code: 201
+                    message: sukses menambahkan foods baru
+                    data:
+                      user_uid: fbakfbakjbfkajbej
+                      useer_history_uid: jdawdjafkaebfkk
+                      goal_uid: ehfayvibaubfkabkj
+                      menu_uid: kahebajebvkabvkab
+                      menu:
+                        - menu_uid: kahebajebvkabvkab
+                          menu_category: "breakfast"
+                          total_calories: 488
+                          created_by: admin
+                          count: 0,
+                          foods:
+                            - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                              name: soto betawi
+                              calories: 244
+                              energy: 244
+                              carbohidrate: 180
+                              protein: 123
+                              unit: bowl
+                              unit_value: 1
+                              food_category: food
+                              image: "soto.png"
+                            - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                              name: soto betawi
+                              calories: 244
+                              energy: 244
+                              carbohidrate: 180
+                              protein: 123
+                              unit: bowl
+                              unit_value: 1
+                              food_category: food
+                              image: "soto.png"
+  /userhistories/:user_history_uid:
+    get:
+        summary: History by User Profile
+        tags:
+          - User History
+        description: User Profile
+        security:
+          - bearerAuth: []
+        responses:
+         '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        calories:
+                          type: integer
+                        category:
+                          type: string
+                          enum:
+                            - fruit
+                            - drink
+                            - junk food
+                            - food
+                            - snack
+                        image :
+                          type: string
+                  example:
+                    code: 201
+                    message: sukses menambahkan foods baru
+                    data:
+                      user_uid: fbakfbakjbfkajbej
+                      useer_history_uid: jdawdjafkaebfkk
+                      goal_uid: ehfayvibaubfkabkj
+                      menu_uid: kahebajebvkabvkab
+                      menu:
+                        - menu_uid: kahebajebvkabvkab
+                          menu_category: "breakfast"
+                          total_calories: 488
+                          created_by: admin
+                          count: 0,
+                          foods:
+                            - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                              name: soto betawi
+                              calories: 244
+                              energy: 244
+                              carbohidrate: 180
+                              protein: 123
+                              unit: bowl
+                              unit_value: 1
+                              food_category: food
+                              image: "soto.png"
+                            - food_uid: "ARoJQigPxCZyNmeFR8qFLh"
+                              name: soto betawi
+                              calories: 244
+                              energy: 244
+                              carbohidrate: 180
+                              protein: 123
+                              unit: bowl
+                              unit_value: 1
+                              food_category: food
+                              image: "soto.png"
+  /foods:
+    post:
+      summary: Add / Create Foods Data (Just For Admin)
+      tags:
+        - Foods
+      requestBody:
+        required: true
+        description: Create / Add Foods Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                calories:
+                  type: integer
+                category:
+                  type: string
+                  enum:
+                    - fruit
+                    - drink
+                    - junk food
+                    - food
+                    - snack
+                image :
+                  type: string
+              example:
+                name: Mangga muda
+                calories: 100
+                energy: 200
+                carbohidrate: 300
+                protein: 400
+                unit: gram
+                unit_value: 2
+                food_categories: fruit
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      calories:
+                        type: integer
+                      category:
+                        type: string
+                        enum:
+                          - fruit
+                          - drink
+                          - junk food
+                          - food
+                          - snack
+                      image :
+                        type: string
+                example:
+                  code: 201
+                  message: sukses menambahkan foods baru
+                  data:
+                    food_uid: kshefkaefk
+                    name: Mangga muda
+                    calories: 100
+                    energy: 200
+                    carbohidrate: 300
+                    protein: 400
+                    unit: gram
+                    unit_value: 2
+                    food_categories: fruit
+                    image: ""
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      summary: Get All Foods
+      tags:
+        - Foods
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                             type: integer
+                          name:
+                            type: string
+                          calories:
+                            type: integer
+                          category:
+                            type: string
+                            enum:
+                              - fruit
+                              - drink
+                              - junk food
+                              - food
+                              - snack
+                          image :
+                            type: string
+                example:
+                    code: 200
+                    message: success to get all foods
+                    data:
+                      -  food_uid: kshefkaefk
+                         name: Mangga muda
+                         calories: 100
+                         energy: 200
+                         carbohidrate: 300
+                         protein: 400
+                         unit: gram
+                         unit_value: 2
+                         food_categories: fruit
+                         image: ""
+                      -  food_uid: kshefkaefk
+                         name: Mangga muda
+                         calories: 100
+                         energy: 200
+                         carbohidrate: 300
+                         protein: 400
+                         unit: gram
+                         unit_value: 2
+                         food_categories: fruit
+                         image: ""
+  /foods/search/:
+    get:
+      summary: Get Foods by Name or Calories
+      description: http://aaryadewangga.cloud.okteto.net/foods/search?input=coba || 100 &category=name || calories
+      tags:
+        - Foods
+      parameters:
+        - name: Input calories
+          in: query
+          description: get food by calories
+          required: true
+          schema:
+            type: integer
+          example: {calories: 500}
+        - name: Input name
+          in: query
+          description: get food by name
+          required: true
+          schema:
+            type: string
+          example: {name: banana}
+      security:
+         - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      calories:
+                        type: integer
+                      category:
+                        type: string
+                        enum:
+                          - fruit
+                          - drink
+                          - junk food
+                          - food
+                          - snack
+                      image :
+                        type: string
+                example:
+                  code: 200
+                  message: Berhasil mendapatkan data foods
+                  data:
+                    -  food_uid: kshefkaefk
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+                    -  food_uid: kshefkaefk
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+  /foods/:food_uid:
+    get:
+        summary: Foods by UID
+        tags:
+          - Foods
+        description: foods
+        security:
+          - bearerAuth: []
+        responses:
+         '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        calories:
+                          type: integer
+                        category:
+                          type: string
+                          enum:
+                            - fruit
+                            - drink
+                            - junk food
+                            - food
+                            - snack
+                        image :
+                          type: string
+                  example:
+                    code: 201
+                    message: sukses menambahkan foods baru
+                    data:
+                       food_uid: kshefkaefk
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+    put:
+      summary: Update Foods Data
+      tags:
+        - Foods
+      parameters:
+        - name: id
+          in: path
+          description: Foods UID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        description: Update Foods Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: integer
+                calories:
+                  type: string
+              example:
+                name: Bakso
+                calories: 312
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      calories:
+                        type: integer
+                      category:
+                        type: string
+                        enum:
+                          - fruit
+                          - drink
+                          - junk food
+                          - food
+                          - snack
+                      image :
+                        type: string
+                example:
+                  code: 200
+                  message: Berhasil mengupdate data foods
+                  data:
+                       food_uid: kshefkaefk
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+          $ref: '#/components/responses/400'
+        '401':
+          description: Authorization Failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+              example:
+                  code: 401
+                  message: Failed User Authorization
+                  data:
+    delete:
+      summary: Delete Foods
+      tags:
+        - Foods
+      parameters:
+        - name: id
+          in: path
+          description: ID Rooms
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 200
+                message: success to delete foods
+                data:
+  /menus:
+    post:
+      summary: Add / Create Menus Data
+      tags:
+        - Menus
+      requestBody:
+        required: true
+        description: Create / Add Menus Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                menu_categories:
+                  type: string
+                  enum:
+                    - breakfast
+                    - lunch
+                    - dinner
+                total_calories:
+                  type: integer
+              example:
+                menu_categories: breakfast
+                foods:
+                  - food_uid: kaefkabfakae
+                  - food_uid: adtafjfaekjf
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses menambahkan menu baru
+                  data:
+                    menu_uid: haevfbkaev
+                    menu_category: breakfast
+                    total_calories: 200
+                    created_by: admin
+                    foods:
+                    -  food_uid: kaefkabfakae
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+                    -  food_uid: adtafjfaekjf
+                       name: Mangga muda
+                       calories: 100
+                       energy: 200
+                       carbohidrate: 300
+                       protein: 400
+                       unit: gram
+                       unit_value: 2
+                       food_categories: fruit
+                       image: ""
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+        summary: Get All Menu
+        tags:
+          - Menus
+        description: All Menus
+        security:
+          - bearerAuth: []
+        responses:
+         '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        calories:
+                          type: integer
+                        category:
+                          type: string
+                          enum:
+                            - fruit
+                            - drink
+                            - junk food
+                            - food
+                            - snack
+                        image :
+                          type: string
+                  example:
+                    code: 201
+                    message: sukses mendapatkan menu baru
+                    data:
+                      - menu_uid: haevfbkaev
+                        menu_category: breakfast
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                      - menu_uid: haevfbkaev
+                        menu_category: breakfast
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+         '400':
+            $ref: '#/components/responses/400'
+         '500':
+            $ref: '#/components/responses/500'
+  /menus/recommend/breakfast:
+    get:
+      summary: Get Menu By Menu Category - breakfast
+      tags:
+        - Menus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses mendapatkan rekomendasi menu breakfast
+                  data:
+                      - menu_uid: haevfbkaev
+                        menu_category: breakfast
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                      - menu_uid: haevfbkaev
+                        menu_category: breakfast
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+        '400':
+            $ref: '#/components/responses/400'
+        '500':
+            $ref: '#/components/responses/500'
+  /menus/recommend/lunch:
+    get:
+      summary: Get Menu By Menu Category - lunch
+      tags:
+        - Menus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses mendapatkan rekomendasi menu breakfast
+                  data:
+                      - menu_uid: haevfbkaev
+                        menu_category: lunch
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                      - menu_uid: haevfbkaev
+                        menu_category: lunch
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+        '400':
+            $ref: '#/components/responses/400'
+        '500':
+            $ref: '#/components/responses/500'
+  /menus/recommend/dinner:
+    get:
+      summary: Get Menu By Menu Category - dinner
+      tags:
+        - Menus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses mendapatkan rekomendasi menu breakfast
+                  data:
+                      - menu_uid: haevfbkaev
+                        menu_category: dinner
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                      - menu_uid: haevfbkaev
+                        menu_category: dinner
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+        '400':
+            $ref: '#/components/responses/400'
+        '500':
+            $ref: '#/components/responses/500'
+  /menus/recommend/overtime:
+    get:
+      summary: Get Menu By Menu Category - overtime
+      tags:
+        - Menus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses mendapatkan rekomendasi menu breakfast
+                  data:
+                      - menu_uid: haevfbkaev
+                        menu_category: overtime
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                      - menu_uid: haevfbkaev
+                        menu_category: overtime
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: kaefkabfakae
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: adtafjfaekjf
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+        '400':
+            $ref: '#/components/responses/400'
+        '500':
+            $ref: '#/components/responses/500'
+  /menus/:menus_uid:
+    put:
+      summary: Update Menus Data
+      tags:
+        - Menus
+      parameters:
+        - name: menus_uid
+          in: path
+          description: menus_uid
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Update Menus Data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                menu_uid:
+                  type: string
+                menu_categories:
+                  type: string
+                  enum:
+                    - breakfast
+                    - lunch
+                    - dinner
+                total_calories:
+                  type: integer
+              example:
+                menu_categories: dinner
+                foods:
+                  - food_uid: hkabfkabkabavv
+                  - food_uid: kfbakfbalblabv
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      menu_uid:
+                        type: string
+                      menu_category:
+                        type: string
+                        enum:
+                          - breakfast
+                          - lunch
+                          - dinner
+                      total_calories:
+                        type: integer
+                      foods :
+                        type: object
+                example:
+                  code: 201
+                  message: sukses mengubah data menu
+                  data:
+                    -   menu_uid: haevfbkaev
+                        menu_category: dinner
+                        total_calories: 200
+                        created_by: admin
+                        foods:
+                        - food_uid: hkabfkabkabavv
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+                        - food_uid: kfbakfbalblabv
+                          name: Mangga muda
+                          calories: 100
+                          energy: 200
+                          carbohidrate: 300
+                          protein: 400
+                          unit: gram
+                          unit_value: 2
+                          food_categories: fruit
+                          image: ""
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+    delete:
+      summary: Delete Menus
+      tags:
+        - Menus
+      parameters:
+        - name: menus_uid
+          in: path
+          description: menus_uid
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 200
+                message: success to delete menus
+components:
+  parameters:
+    UserID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      example:
+        email: test@mail.com
+        password: test
+    UserInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    SuccessSingleResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/UserInput'
+  responses:
+    '204':
+      description: Failed to Update
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 204
+              message:
+                type: string
+                example: No data for Update
+              data:
+                type: object
+                example:
+    '400':
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              message:
+                type: string
+              data:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+            example:
+              code: 400
+              message: Invalid Input
+              data:
+    '401':
+      description: Authorization Failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 401
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: invalid Email or password
+              data:
+                type: object
+                example:
+                  token: {}
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              message:
+                type: string
+              data:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+            example:
+              code: 500
+              message: Something Error on Server
+              data:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
