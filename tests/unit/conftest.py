@@ -81,18 +81,28 @@ def list_specific_fixtures_version(
         FixtureExpectedStatus.ko.value,
     )
 
-    fixtures_ok: t.List[str] = []
-    fixtures_ko: t.List[str] = []
+    fixtures_ok_path: t.List[str] = []
+    fixtures_ko_path: t.List[str] = []
+    fixtures_ok_files: t.List[str] = []
+    fixtures_ko_files: t.List[str] = []
 
-    fixtures_ok_files = [file for file in os.walk(ok_dir)][0][-1]
+    try:
+        fixtures_ok_files = [file for file in os.walk(ok_dir)][0][-1]
+    except Exception:  # nosec
+        pass  # no file found, folder empty
+
     for file in fixtures_ok_files:
-        fixtures_ok.append(os.path.join(ok_dir, file))
+        fixtures_ok_path.append(os.path.join(ok_dir, file))
 
-    fixtures_ko_files = [file for file in os.walk(ko_dir)][0][-1]
+    try:
+        fixtures_ko_files = [file for file in os.walk(ko_dir)][0][-1]
+    except Exception:  # nosec
+        pass  # no file found, folder empty
+
     for file in fixtures_ko_files:
-        fixtures_ko.append(os.path.join(ok_dir, file))
+        fixtures_ko_path.append(os.path.join(ok_dir, file))
 
     return FixturesVersion(
-        ok=fixtures_ok,
-        ko=fixtures_ko,
+        ok=fixtures_ok_path,
+        ko=fixtures_ko_path,
     )
