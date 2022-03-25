@@ -15,19 +15,6 @@ info:
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 servers:
   - url: "https://petstore.swagger.io/v2"
-tags:
-  - name: pet
-    description: Everything about your Pets
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
-  - name: store
-    description: Access to Petstore orders
-  - name: user
-    description: Operations about user
-    externalDocs:
-      description: Find out more about our store
-      url: "http://swagger.io"
 paths:
   /pet:
     post:
@@ -61,7 +48,7 @@ paths:
             - "write:pets"
             - "read:pets"
       requestBody:
-        $ref: "#/components/requestBodies/Pet"
+        $ref: "invalid-format"
   /pet/findByStatus:
     get:
       tags:

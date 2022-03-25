@@ -3,6 +3,7 @@ import functools
 import typing as t
 
 import pydantic
+from inflection import underscore
 
 from openapydantic.common import HTTPStatusCode
 from openapydantic.common import MediaType
@@ -587,12 +588,17 @@ class OpenApi302(OpenApi, BaseModel):
                     sub_obj = getattr(obj, attr)  # type: ignore
                     self._list_reference(sub_obj)
 
-        return
-
     def _resolve_reference(self):
         def _getattr(obj, attr):  # type: ignore
+
+            # _attr is needed for snake_case aliased attr
+            _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
+
             if hasattr(obj, attr):  # type: ignore
                 return getattr(obj, attr)  # type: ignore
+
+            if hasattr(obj, _attr):  # type: ignore
+                return getattr(obj, _attr)  # type: ignore
 
             if isinstance(obj, dict) and attr in obj.keys():
                 return obj.get(attr)  # type: ignore
