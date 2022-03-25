@@ -82,9 +82,27 @@ async def test_parse_api_invalid_spec_extended(
         openapydantic.OpenApi302(**raw_api)
 
 
+@pytest.mark.asyncio
+async def test_parse_api_ref_unmanaged_file_format(
+    fixture_loader: FixtureLoader,
+) -> None:
+    with pytest.raises(Exception):
+        raw_api = fixture_loader.load_yaml("ref-error-unmanaged-file-format.yaml")
+        openapydantic.OpenApi302(**raw_api)
+
+
+@pytest.mark.asyncio
+async def test_parse_api_ref_invalid_path_format(
+    fixture_loader: FixtureLoader,
+) -> None:
+    with pytest.raises(Exception):
+        raw_api = fixture_loader.load_yaml("ref-error-invalid-path-format.yaml")
+        openapydantic.OpenApi302(**raw_api)
+
+
 # @pytest.mark.asyncio
 # async def test_parse_api_oneshot() -> None:
 #     raw_api = await openapydantic.load_spec(
-#         "/workspaces/api/tests/unit/v3.0.2/fixture/ok/healthfit.yaml"
+#         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/ok/petstore.yaml"
 #     )
 #     openapydantic.OpenApi302(**raw_api)

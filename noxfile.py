@@ -1,6 +1,6 @@
 from nox_poetry import session
 
-python_version = ["3.8"]
+python_version = ["3.8", "3.9", "3.10"]
 source = "openapydantic/"
 
 
