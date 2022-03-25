@@ -562,11 +562,11 @@ class OpenApi302(OpenApi, BaseModel):
         None,
         alias="externalDocs",
     )
-    _ref: t.Optional[t.List[str]]
+    __ref__: t.Optional[t.List[str]]
 
     def _list_reference(self, obj: t.Any):
         if isinstance(obj, Reference):
-            self._ref.append(obj.ref)  # type: ignore
+            self.__ref__.append(obj.ref)  # type: ignore
             return
 
         if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
@@ -593,26 +593,25 @@ class OpenApi302(OpenApi, BaseModel):
 
             # _attr is needed for snake_case aliased attr
             _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
+            if _attr != attr and hasattr(obj, _attr):  # type: ignore
+                return getattr(obj, _attr)  # type: ignore
 
             if hasattr(obj, attr):  # type: ignore
                 return getattr(obj, attr)  # type: ignore
-
-            if hasattr(obj, _attr):  # type: ignore
-                return getattr(obj, _attr)  # type: ignore
 
             if isinstance(obj, dict) and attr in obj.keys():
                 return obj.get(attr)  # type: ignore
 
             raise ValueError(f"Reference invalid. {attr} not found")
 
-        for ref in self._ref:  # type: ignore
+        for ref in self.__ref__:  # type: ignore
             unprefix_ref = ref.split("/")[1:]
             unprefix_ref.insert(0, self)  # type: ignore
             functools.reduce(_getattr, unprefix_ref)  # type: ignore
 
     def __init__(self, **data) -> None:  # type: ignore
         super().__init__(**data)
-        object.__setattr__(self, "_ref", [])
+        object.__setattr__(self, "__ref__", [])
         for attr in self.__fields_set__:
             obj = getattr(self, attr)
             self._list_reference(obj)
