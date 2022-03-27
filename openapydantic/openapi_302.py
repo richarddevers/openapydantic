@@ -1,6 +1,9 @@
 import enum
 import functools
 import typing as t
+from collections.abc import (
+    Iterable,  # import directly from collections for Python < 3.3
+)
 
 import pydantic
 from inflection import underscore
@@ -66,7 +69,7 @@ class Reference(BaseModel):
         alias="$ref",
     )
 
-    @pydantic.validator("ref")
+    @pydantic.validator("ref", allow_reuse=True)
     def validate_reference(cls, v: str) -> str:
         if ".yaml" in v or ".json" in v:
             raise NotImplementedError("Field reference currently not implemented")
@@ -517,7 +520,7 @@ class Tag(BaseModel):
 
 
 AllClass = t.Union[
-    Components,
+    # Components,
     Contact,
     Encoding,
     Example,
@@ -550,7 +553,7 @@ AllClass = t.Union[
 
 
 class OpenApi302(OpenApi, BaseModel):
-    version: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
+    __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
     components: t.Optional[Components]
     openapi: OpenApiVersion
     info: Info
@@ -562,12 +565,43 @@ class OpenApi302(OpenApi, BaseModel):
         None,
         alias="externalDocs",
     )
-    __ref__: t.Optional[t.List[str]]
+
+    def _verify_reference(
+        self,
+        ref: str,
+    ):
+        """
+        Verify if reference point on an existing object
+        """
+
+        def _getattr(obj, attr) -> t.Any:  # type: ignore
+            # _attr is needed for snake_case aliased attr
+            _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
+            if _attr != attr and hasattr(obj, _attr):  # type: ignore
+                return getattr(obj, _attr)  # type: ignore
+
+            if hasattr(obj, attr):  # type: ignore
+                return getattr(obj, attr)  # type: ignore
+
+            if isinstance(obj, dict) and attr in obj.keys():
+                return obj.get(attr)  # type: ignore
+
+            raise ValueError(f"Reference invalid. {attr} not found")
+
+        unprefix_ref = ref.split("/")[1:]
+        unprefix_ref.insert(0, self)  # type: ignore
+        return functools.reduce(_getattr, unprefix_ref)  # type: ignore
 
     def _list_reference(self, obj: t.Any):
-        if isinstance(obj, Reference):
-            self.__ref__.append(obj.ref)  # type: ignore
-            return
+        """
+        Recursive method to parse the whole object to list reference
+        """
+
+        if isinstance(obj, Reference) and (obj.ref not in self.__ref__):  # type: ignore
+            resolved_ref = self._verify_reference(ref=obj.ref)
+            self.__ref__.append({obj.ref: None})  # type: ignore
+            breakpoint()
+            return resolved_ref
 
         if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
             return
@@ -588,32 +622,40 @@ class OpenApi302(OpenApi, BaseModel):
                     sub_obj = getattr(obj, attr)  # type: ignore
                     self._list_reference(sub_obj)
 
-    def _resolve_reference(self):
-        def _getattr(obj, attr):  # type: ignore
+    def _list_reference2(
+        self,
+        obj: t.Any,
+    ) -> t.Any:
+        if hasattr(obj, "ref") and obj.ref:  # type: ignore
+            resolved_ref = self._verify_reference(ref=obj.ref)
+            # self._expand_ref(obj.ref, resolved_ref)
+            self.__ref__[obj.ref] = None  # type: ignore
+            obj = resolved_ref
+            return
 
-            # _attr is needed for snake_case aliased attr
-            _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
-            if _attr != attr and hasattr(obj, _attr):  # type: ignore
-                return getattr(obj, _attr)  # type: ignore
+        if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
+            return
 
-            if hasattr(obj, attr):  # type: ignore
-                return getattr(obj, attr)  # type: ignore
+        if isinstance(obj, list):
+            for attr in obj:  # type: ignore
+                self._list_reference2(attr)
 
-            if isinstance(obj, dict) and attr in obj.keys():
-                return obj.get(attr)  # type: ignore
+        if isinstance(obj, dict):
+            for attr in obj:  # type: ignore
+                self._list_reference2(obj.get(attr))  # type: ignore
+            return
 
-            raise ValueError(f"Reference invalid. {attr} not found")
-
-        for ref in self.__ref__:  # type: ignore
-            unprefix_ref = ref.split("/")[1:]
-            unprefix_ref.insert(0, self)  # type: ignore
-            functools.reduce(_getattr, unprefix_ref)  # type: ignore
+        for typ in AllClass.__args__:  # type: ignore
+            if isinstance(obj, typ):
+                for attr in obj.__fields_set__:  # type: ignore
+                    sub_obj = getattr(obj, attr)  # type: ignore
+                    self._list_reference2(sub_obj)
 
     def __init__(self, **data) -> None:  # type: ignore
-        super().__init__(**data)
-        object.__setattr__(self, "__ref__", [])
+        super().__init__(**data)  # type: ignore
+        object.__setattr__(self, "__ref__", {})
+
+        # list & verify reference
         for attr in self.__fields_set__:
             obj = getattr(self, attr)
-            self._list_reference(obj)
-
-        self._resolve_reference()
+            self._list_reference2(obj)

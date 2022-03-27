@@ -100,9 +100,10 @@ async def test_parse_api_ref_invalid_path_format(
         openapydantic.OpenApi302(**raw_api)
 
 
-# @pytest.mark.asyncio
-# async def test_parse_api_oneshot() -> None:
-#     raw_api = await openapydantic.load_spec(
-#         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/ok/petstore.yaml"
-#     )
-#     openapydantic.OpenApi302(**raw_api)
+@pytest.mark.asyncio
+async def test_parse_api_oneshot() -> None:
+    raw_api = await openapydantic.load_spec(
+        "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components.yaml"
+    )
+    api = openapydantic.OpenApi302(**raw_api)
+    breakpoint()

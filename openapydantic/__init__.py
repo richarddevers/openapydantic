@@ -33,7 +33,7 @@ async def parse_api(file_path: str) -> OpenApi:
     if not openapi_version:
         raise ValueError("openapi version not specified")
 
-    if openapi_version == OpenApi302.version.value:
-        return OpenApi302(**api)
+    if openapi_version == OpenApi302.__version__.value:
+        return openapi_302.parse_api(**api)
 
     raise NotImplementedError(f"Unsupported openapi version:{openapi_version}")
