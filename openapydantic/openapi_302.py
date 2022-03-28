@@ -1,9 +1,6 @@
 import enum
 import functools
 import typing as t
-from collections.abc import (
-    Iterable,  # import directly from collections for Python < 3.3
-)
 
 import pydantic
 from inflection import underscore
@@ -20,33 +17,142 @@ Field = pydantic.Field
 Enum = enum.Enum
 
 
-class BaseModel(pydantic.BaseModel):
+class ComponentType(enum.Enum):
+    schemas = "schemas"
+    headers = "headers"
+    responses = "responses"
+    parameters = "parameters"
+    examples = "examples"
+    request_bodies = "requestBodies"
+    links = "links"
+    callbacks = "callbacks"
+
+
+class ComponentsParser:
+    with_ref = {}
+    without_ref = {}
+    ref_find = False
+    ref_path = []
+    current_obj = None
+
+    @staticmethod
+    def validate_ref(ref: str) -> None:
+        if ".yaml" in ref or ".json" in ref:
+            raise NotImplementedError("File reference not implemented")
+        if not ref.startswith("#/"):
+            raise ValueError(f"reference {ref} has invalid format")
+
+    @classmethod
+    def find_ref(
+        cls,
+        *,
+        obj: t.Any,
+    ):
+        if isinstance(obj, list):
+            for elt in enumerate(obj):
+                cls.find_ref(obj=elt)
+
+        if isinstance(obj, dict):
+            ref = obj.get("$ref")
+            if ref:
+                cls.validate_ref(ref=ref)
+                cls.ref_find = True
+
+            for key, data in obj.items():
+                cls.find_ref(obj=obj.get(key))
+
+    @classmethod
+    def search_schemas_for_ref(
+        cls,
+        *,
+        schemas: t.Dict[str, t.Any],
+    ):
+
+        for key, data in schemas.items():
+            cls.ref_find = False
+            cls.find_ref(
+                obj=data,
+            )
+
+            if cls.ref_find:
+                cls.with_ref[ComponentType.schemas.name][key] = data
+            else:
+                cls.without_ref[ComponentType.schemas.name][key] = data
+
+    @classmethod
+    def parser(
+        cls,
+        *,
+        raw_api: t.Dict[str, t.Any],
+    ):
+        cls.with_ref[ComponentType.schemas.name] = {}
+        cls.without_ref[ComponentType.schemas.name] = {}
+
+        components = raw_api.get("components")
+        if not components:
+            print("No components in this api")
+            return
+
+        schemas = components.get("schemas")
+        if not schemas:
+            print("No schemas in components section")
+            return
+        cls.search_schemas_for_ref(schemas=schemas)
+
+    ########
+
+    @staticmethod
+    def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
+        ref_split = ref.split("/")  # format #/components/schemas/Pet
+        ref_type = ComponentType(ref_split[2])
+        ref_key = ref_split[-1]
+        return ref_type, ref_key
+
+
+class RefModel(pydantic.BaseModel):
+    ref: t.Optional[str] = Field(None, alias="$ref")
+
+
+class BaseModel(RefModel):
     class Config:
         extra = "forbid"
         # extra = "allow"
         # extra = "ignore"
 
 
-class BaseModelSpecificationExtension(pydantic.BaseModel):
+class BaseModelSpecificationExtension(RefModel):
     class Config:
         # extra = "forbid"
         extra = "allow"
         # extra = "ignore"
 
-    @pydantic.root_validator(allow_reuse=True)
-    def validate_spec_extension(
+    @pydantic.root_validator(pre=True, allow_reuse=True)
+    def validate_root(
         cls,
         values: t.Dict[str, str],
     ) -> t.Dict[str, str]:
-        native_attr = set(cls.__fields__.keys())  # all class attr key
-        setted_attr = [k for k, v in values.items() if v]  # setted attr key
-        extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
-        for attr in extra_attr:
-            if not attr.startswith("x-"):
-                raise ValueError(
-                    "Schema extension must be conform to openapi spec extension(^x-)"
-                )
-        return values
+        # check ref
+        ref = values.get("$ref")
+        if ref:
+            ref_type, ref_key = ComponentsParser.get_ref_data(ref)
+            ref_found = ComponentsParser.without_ref[ref_type.name].get(ref_key)
+
+            if not ref_found:
+                raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
+
+            return ref_found
+        else:
+            # check spec extension:
+            native_attr = set(cls.__fields__.keys())  # all class attr key
+            setted_attr = [k for k, v in values.items() if v]  # setted attr key
+            extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
+            clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
+            for attr in clean_extra_attr:
+                if not attr.startswith("x-"):
+                    raise ValueError(
+                        f"Schema extension:{attr} must be conform to openapi spec extension(^x-)"
+                    )
+            return values
 
 
 class JsonType(enum.Enum):
@@ -62,20 +168,6 @@ class SecurityIn(enum.Enum):
     query = "query"
     header = "header"
     cookie = "cookie"
-
-
-class Reference(BaseModel):
-    ref: str = Field(
-        alias="$ref",
-    )
-
-    @pydantic.validator("ref", allow_reuse=True)
-    def validate_reference(cls, v: str) -> str:
-        if ".yaml" in v or ".json" in v:
-            raise NotImplementedError("Field reference currently not implemented")
-        if not v.startswith("#/"):
-            raise ValueError(f"reference {v} has invalid format")
-        return v
 
 
 Discriminator = t.Mapping[str, t.Dict[str, str]]
@@ -94,12 +186,9 @@ class ExternalDocs(BaseModel):
     url: t.Optional[pydantic.AnyUrl]
 
 
-SchemaRef = t.Union["Schema", Reference]
-
-
 SchemaUnion = t.Union[
-    SchemaRef,
-    t.Mapping[str, SchemaRef],
+    "Schema",
+    t.Mapping[str, "Schema"],
 ]
 
 
@@ -216,7 +305,7 @@ class Header(BaseModel):
     )
 
 
-HeadersUnion = t.Optional[t.Mapping[str, t.Union[Header, Reference]]]
+HeadersUnion = t.Optional[t.Mapping[str, Header]]
 
 
 class Encoding(BaseModel):
@@ -239,8 +328,8 @@ class MediaTypeObject(pydantic.BaseModel):
         alias="schema",
     )
     example: t.Any
-    examples: t.Optional[t.Mapping[str, t.Union[Example, Reference]]]
-    encoding: t.Optional[t.Mapping[str, t.Union[Encoding, Reference]]]
+    examples: t.Optional[t.Mapping[str, Example]]
+    encoding: t.Optional[t.Mapping[str, Encoding]]
 
 
 MediaTypeMap = t.Mapping[MediaType, MediaTypeObject]
@@ -250,10 +339,7 @@ class Response(BaseModel):
     description: str
     content: t.Optional[MediaTypeMap]
     headers: HeadersUnion
-    links: t.Optional[t.Mapping[str, t.Union["Link", Reference]]]
-
-
-Responses = t.Mapping[HTTPStatusCode, t.Union[Response, Reference]]
+    links: t.Optional[t.Mapping[str, "Link"]]
 
 
 class RequestBody(BaseModel):
@@ -322,7 +408,7 @@ class Parameter(BaseModel):
         alias="allowReserved",
     )
     example: t.Any
-    examples: t.Optional[t.Union[Example, Reference]]
+    examples: t.Optional[Example]
 
 
 Callback = t.Mapping[str, "PathItem"]
@@ -340,28 +426,19 @@ class Operation(BaseModelSpecificationExtension):
         None,
         alias="operationId",
     )
-    responses: Responses
-    parameters: t.Optional[t.List[t.Union[Parameter, Reference]]]
-    request_body: t.Optional[t.Union[RequestBody, Reference]] = Field(
+    responses: t.Mapping[HTTPStatusCode, Response]
+    parameters: t.Optional[t.List[Parameter]]
+    request_body: t.Optional[RequestBody] = Field(
         None,
         alias="requestBody",
     )
-    callbacks: t.Optional[
-        t.Union[
-            t.Mapping[str, Callback],
-            t.Mapping[str, Reference],
-        ]
-    ]
+    callbacks: t.Optional[t.Mapping[str, Callback]]
     deprecated: t.Optional[bool]
     security: t.Optional[t.List[SecurityRequirement]]
     servers: t.Optional[t.List[Server]]
 
 
 class PathItem(BaseModelSpecificationExtension):
-    ref: t.Optional[str] = Field(
-        None,
-        alias="$ref",
-    )
     summary: t.Optional[str]
     description: t.Optional[str]
     get: t.Optional[Operation]
@@ -373,7 +450,7 @@ class PathItem(BaseModelSpecificationExtension):
     options: t.Optional[Operation]
     trace: t.Optional[Operation]
     servers: t.Optional[t.List[Server]]
-    parameters: t.Optional[Reference]
+    parameters: t.Optional[t.Any]
 
 
 Operation.update_forward_refs()
@@ -468,16 +545,16 @@ SecuritySchemeUnion = t.Union[
 
 class Components(BaseModel):
     headers: HeadersUnion
-    schemas: t.Optional[t.Mapping[str, t.Union[Schema, Reference]]]
-    responses: t.Optional[t.Mapping[str, t.Union[Response, Reference]]]
-    parameters: t.Optional[t.Mapping[str, t.Union[Parameter, Reference]]]
-    examples: t.Optional[t.Mapping[str, t.Union[Example, Reference]]]
-    request_bodies: t.Optional[t.Mapping[str, t.Union[RequestBody, Reference]]] = Field(
+    schemas: t.Optional[t.Mapping[str, Schema]]
+    responses: t.Optional[t.Mapping[str, Response]]
+    parameters: t.Optional[t.Mapping[str, Parameter]]
+    examples: t.Optional[t.Mapping[str, Example]]
+    request_bodies: t.Optional[t.Mapping[str, RequestBody]] = Field(
         None,
         alias="requestBodies",
     )
-    links: t.Optional[t.Mapping[str, t.Union[Link, Reference]]]
-    callbacks: t.Optional[t.Mapping[str, t.Union[Callback, Reference]]]
+    links: t.Optional[t.Mapping[str, Link]]
+    callbacks: t.Optional[t.Mapping[str, Callback]]
     security_schemes: t.Optional[t.Mapping[str, SecuritySchemeUnion]] = Field(
         None,
         alias="securitySchemes",
@@ -566,96 +643,14 @@ class OpenApi302(OpenApi, BaseModel):
         alias="externalDocs",
     )
 
-    def _verify_reference(
-        self,
-        ref: str,
-    ):
-        """
-        Verify if reference point on an existing object
-        """
-
-        def _getattr(obj, attr) -> t.Any:  # type: ignore
-            # _attr is needed for snake_case aliased attr
-            _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
-            if _attr != attr and hasattr(obj, _attr):  # type: ignore
-                return getattr(obj, _attr)  # type: ignore
-
-            if hasattr(obj, attr):  # type: ignore
-                return getattr(obj, attr)  # type: ignore
-
-            if isinstance(obj, dict) and attr in obj.keys():
-                return obj.get(attr)  # type: ignore
-
-            raise ValueError(f"Reference invalid. {attr} not found")
-
-        unprefix_ref = ref.split("/")[1:]
-        unprefix_ref.insert(0, self)  # type: ignore
-        return functools.reduce(_getattr, unprefix_ref)  # type: ignore
-
-    def _list_reference(self, obj: t.Any):
-        """
-        Recursive method to parse the whole object to list reference
-        """
-
-        if isinstance(obj, Reference) and (obj.ref not in self.__ref__):  # type: ignore
-            resolved_ref = self._verify_reference(ref=obj.ref)
-            self.__ref__.append({obj.ref: None})  # type: ignore
-            breakpoint()
-            return resolved_ref
-
-        if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
-            return
-
-        if isinstance(obj, list):
-            for attr in obj:  # type: ignore
-                self._list_reference(attr)
-            return
-
-        if isinstance(obj, dict):
-            for attr in obj:  # type: ignore
-                self._list_reference(obj.get(attr))  # type: ignore
-            return
-
-        for typ in AllClass.__args__:  # type: ignore
-            if isinstance(obj, typ):
-                for attr in obj.__fields_set__:  # type: ignore
-                    sub_obj = getattr(obj, attr)  # type: ignore
-                    self._list_reference(sub_obj)
-
-    def _list_reference2(
-        self,
-        obj: t.Any,
-    ) -> t.Any:
-        if hasattr(obj, "ref") and obj.ref:  # type: ignore
-            resolved_ref = self._verify_reference(ref=obj.ref)
-            # self._expand_ref(obj.ref, resolved_ref)
-            self.__ref__[obj.ref] = None  # type: ignore
-            obj = resolved_ref
-            return
-
-        if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
-            return
-
-        if isinstance(obj, list):
-            for attr in obj:  # type: ignore
-                self._list_reference2(attr)
-
-        if isinstance(obj, dict):
-            for attr in obj:  # type: ignore
-                self._list_reference2(obj.get(attr))  # type: ignore
-            return
-
-        for typ in AllClass.__args__:  # type: ignore
-            if isinstance(obj, typ):
-                for attr in obj.__fields_set__:  # type: ignore
-                    sub_obj = getattr(obj, attr)  # type: ignore
-                    self._list_reference2(sub_obj)
+    def as_clean_json(self):
+        return self.json(
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+        )
 
     def __init__(self, **data) -> None:  # type: ignore
+        ComponentsParser.parser(raw_api=data)
         super().__init__(**data)  # type: ignore
         object.__setattr__(self, "__ref__", {})
-
-        # list & verify reference
-        for attr in self.__fields_set__:
-            obj = getattr(self, attr)
-            self._list_reference2(obj)

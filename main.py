@@ -1,97 +1,10 @@
+import copy
 import enum
 import typing as t
 
+import pydantic
+
 raw_api = {
-    "openapi": "3.0.0",
-    "servers": [],
-    "info": {
-        "description": "This is a simple API",
-        "version": "1.0.0",
-        "title": "Simple Inventory API",
-        "contact": {"email": "you@your-company.com"},
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html",
-        },
-    },
-    "tags": [
-        {"name": "admins", "description": "Secured Admin-only calls"},
-        {
-            "name": "developers",
-            "description": "Operations available to regular developers",
-        },
-    ],
-    "paths": {
-        "/inventory": {
-            "get": {
-                "tags": ["developers"],
-                "summary": "searches inventory",
-                "operationId": "searchInventory",
-                "description": "By passing in the appropriate options, you can search for\navailable inventory in the system\n",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "searchString",
-                        "description": "pass an optional search string for looking up inventory",
-                        "required": False,
-                        "schema": {"type": "string"},
-                    },
-                    {
-                        "in": "query",
-                        "name": "skip",
-                        "description": "number of records to skip for pagination",
-                        "schema": {"type": "integer", "format": "int32", "minimum": 0},
-                    },
-                    {
-                        "in": "query",
-                        "name": "limit",
-                        "description": "maximum number of records to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int32",
-                            "minimum": 0,
-                            "maximum": 50,
-                        },
-                    },
-                ],
-                "responses": {
-                    "200": {
-                        "description": "search results matching criteria",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/InventoryItem"
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "400": {"description": "bad input parameter"},
-                },
-            },
-            "post": {
-                "tags": ["admins"],
-                "summary": "adds an inventory item",
-                "operationId": "addInventory",
-                "description": "Adds an item to the system",
-                "responses": {
-                    "201": {"description": "item created"},
-                    "400": {"description": "invalid input, object invalid"},
-                    "409": {"description": "an existing item already exists"},
-                },
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {"$ref": "#/components/schemas/InventoryItem"}
-                        }
-                    },
-                    "description": "Inventory item to add",
-                },
-            },
-        }
-    },
     "components": {
         "schemas": {
             "InventoryItem": {
@@ -131,20 +44,22 @@ raw_api = {
 
 
 class ComponentType(enum.Enum):
-    schemas = "Schemas"
-    headers = "Headers"
-    responses = "Responses"
-    parameters = "Parameters"
-    examples = "Examples"
-    request_bodies = "RequestBodies"
-    links = "Links"
-    callbacks = "Callbacks"
+    schemas = "schemas"
+    headers = "headers"
+    responses = "responses"
+    parameters = "parameters"
+    examples = "examples"
+    request_bodies = "requestBodies"
+    links = "links"
+    callbacks = "callbacks"
 
 
 class ComponentsParser:
     components_with_ref = {}
     components_without_ref = {}
     ref_find = False
+    ref_path = []
+    current_obj = None
 
     @staticmethod
     def validate_ref(ref: str) -> None:
@@ -159,9 +74,8 @@ class ComponentsParser:
         *,
         obj: t.Any,
     ):
-
         if isinstance(obj, list):
-            for elt in obj:
+            for elt in enumerate(obj):
                 cls.find_ref(obj=elt)
 
         if isinstance(obj, dict):
@@ -169,11 +83,12 @@ class ComponentsParser:
             if ref:
                 cls.validate_ref(ref=ref)
                 cls.ref_find = True
+
             for key, data in obj.items():
                 cls.find_ref(obj=obj.get(key))
 
     @classmethod
-    def parse_schemas(
+    def search_schemas_for_ref(
         cls,
         *,
         schemas: t.Dict[str, t.Any],
@@ -208,10 +123,86 @@ class ComponentsParser:
         if not schemas:
             print("No schemas in components section")
             return
-        cls.parse_schemas(schemas=schemas)
+        cls.search_schemas_for_ref(schemas=schemas)
+
+    ########
+
+    @staticmethod
+    def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
+        ref_split = ref.split("/")  # format #/components/schemas/Pet
+        ref_type = ComponentType(ref_split[2])
+        ref_key = ref_split[-1]
+        return ref_type, ref_key
+
+        # def find_ref2(
+        #     *,
+        #     obj: t.Any,
+        # ):
+        #     if isinstance(obj, list):
+        #         for elt in obj:
+        #             find_ref2(obj=elt)
+
+        #     if isinstance(obj, dict, current_obj:dict):
+        #         ref = obj.get("$ref")
+        #         if ref:
+        #             ref_type, ref_key = get_ref_data(ref)
+        #             ref_found = cls.components_without_ref[ref_type.name].get(ref_key)
+        #             if ref_found:
+        #                 new_obj = cls.components_with_ref[ref_type.name][key]
+
+        #                 obj = tmp
+
+        #                 cls.components_with_ref[ref_type.name].pop(key)
+        #                 breakpoint()
+        #         else:
+        #             for key2 in obj:
+        #                 find_ref2(obj=obj.get(key2))
+
+        # with_ref = copy.deepcopy(cls.components_with_ref["schemas"])
+
+        # while len(with_ref):
+        #     for key, data in cls.components_with_ref["schemas"]:
+        #         current_obj = {key: data}
+        #         find_ref2(obj=data)
+
+        #         cls.ref_find = False
+        #         cls.find_ref(obj=data)
+        #         if cls.ref_find:
+        #             cls.components_with_ref[ComponentType.schemas.name][key] = data
+        #         else:
+        #             cls.components_without_ref[ComponentType.schemas.name][key] = data
+        #     print(cls.components_with_ref)
+        #     with_ref = copy.deepcopy(cls.components_with_ref["schemas"])
+        #     print(len(with_ref))
+
+
+class Schema(pydantic.BaseModel):
+    type: str
+    properties: t.Optional["Schema"] = pydantic.Field(None)
+    ref: t.Optional[str] = pydantic.Field(
+        None,
+        alias="$ref",
+    )
+
+    @pydantic.root_validator(pre=True)
+    def ref_loader(cls, values):
+        ref = values.get("$ref")
+        if not ref:
+            return values
+
+        ref_type, ref_key = ComponentsParser.get_ref_data(ref)
+        ref_found = cls.components_without_ref[ref_type.name].get(ref_key)
+
+        if not ref_found:
+            raise f"Reference not found:{ref_type}/{ref_key}"
+        return ref_found
+
+    class Config:
+        extra = "allow"
 
 
 ComponentsParser.parser(raw_api=raw_api)
-print(len(ComponentsParser.components_with_ref["schemas"]))
-print(len(ComponentsParser.components_without_ref["schemas"]))
-breakpoint()
+print(ComponentsParser.components_with_ref["schemas"])
+print(ComponentsParser.components_without_ref["schemas"])
+raw_inventory_item = raw_api.get("components").get("schemas").get("InventoryItem")
+inventory_item = Schema(**raw_inventory_item)

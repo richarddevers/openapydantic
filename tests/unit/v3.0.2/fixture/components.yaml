@@ -37,18 +37,18 @@ components:
             - available
             - pending
             - sold
-    Shop:
-      type: object
-      required:
-        - name
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-          example: myshop
-        pets:
-          type: array
-          items:
-            $ref: "#/components/schemas/Pet"
+    # Shop:
+    #   type: object
+    #   required:
+    #     - name
+    #   properties:
+    #     id:
+    #       type: integer
+    #       format: int64
+    #     name:
+    #       type: string
+    #       example: myshop
+    #     pets:
+    #       type: array
+    #       items:
+    #         $ref: "#/components/schemas/Pet"

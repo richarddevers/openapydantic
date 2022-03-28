@@ -101,5 +101,3 @@ class OpenApiVersion(enum.Enum):
 
 class OpenApi:
     __version__: t.ClassVar[OpenApiVersion]
-    __raw_api__: t.Dict[str, t.Any]
-    __ref__: t.Optional[t.Mapping]

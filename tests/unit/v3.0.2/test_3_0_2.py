@@ -106,4 +106,4 @@ async def test_parse_api_oneshot() -> None:
         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components.yaml"
     )
     api = openapydantic.OpenApi302(**raw_api)
-    breakpoint()
+    print(api.as_clean_json())
