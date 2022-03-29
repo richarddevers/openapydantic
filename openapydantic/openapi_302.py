@@ -16,7 +16,6 @@ Field = pydantic.Field
 
 
 class ComponentType(enum.Enum):
-    components = "components"
     schemas = "schemas"
     headers = "headers"
     responses = "responses"
@@ -42,7 +41,7 @@ class RefModel(pydantic.BaseModel):
                 by_alias=True,
                 exclude_unset=True,
                 exclude_none=True,
-                exclude={ComponentType.components.value},
+                exclude={"components"},
             )
         return self.json(
             by_alias=True,
@@ -59,7 +58,7 @@ class RefModel(pydantic.BaseModel):
                 by_alias=True,
                 exclude_unset=True,
                 exclude_none=True,
-                exclude={ComponentType.components.value},
+                exclude={"components"},
             )
         return self.dict(
             by_alias=True,
@@ -342,6 +341,9 @@ class Link(BaseModelForbid):
     server: t.Optional[Server]
 
 
+Response.update_forward_refs()
+
+
 class Parameter(BaseModelForbid):
     # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#parameterObject
     name: str
@@ -409,6 +411,9 @@ class PathItem(BaseModelAllow):
     trace: t.Optional[Operation]
     servers: t.Optional[t.List[Server]]
     parameters: t.Optional[t.Any]
+
+
+Operation.update_forward_refs()
 
 
 class OAuthFlowImplicit(BaseModelForbid):
@@ -595,6 +600,23 @@ class ComponentsParser:
         cls.without_ref = {}
         cls.ref_find = False
         cls.raw_api = {}
+        cls.with_ref[ComponentType.schemas.name] = {}
+        cls.with_ref[ComponentType.headers.name] = {}
+        cls.with_ref[ComponentType.responses.name] = {}
+        cls.with_ref[ComponentType.parameters.name] = {}
+        cls.with_ref[ComponentType.examples.name] = {}
+        cls.with_ref[ComponentType.request_bodies.name] = {}
+        cls.with_ref[ComponentType.links.name] = {}
+        cls.with_ref[ComponentType.callbacks.name] = {}
+
+        cls.without_ref[ComponentType.schemas.name] = {}
+        cls.without_ref[ComponentType.headers.name] = {}
+        cls.without_ref[ComponentType.responses.name] = {}
+        cls.without_ref[ComponentType.parameters.name] = {}
+        cls.without_ref[ComponentType.examples.name] = {}
+        cls.without_ref[ComponentType.request_bodies.name] = {}
+        cls.without_ref[ComponentType.links.name] = {}
+        cls.without_ref[ComponentType.callbacks.name] = {}
 
     @staticmethod
     def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
@@ -669,6 +691,8 @@ class ComponentsParser:
         component_dict = {}
         component_key = component_type.name
         with_ref_copy = copy.deepcopy(cls.with_ref[component_key])
+        # print(len(cls.with_ref))
+        # print(cls.with_ref)
         for key, value in with_ref_copy.items():
             cls.ref_find = False
 
@@ -699,36 +723,79 @@ class ComponentsParser:
         *,
         raw_api: t.Dict[str, t.Any],
     ):
-        cls.with_ref[ComponentType.schemas.name] = {}
-        cls.without_ref[ComponentType.schemas.name] = {}
-        cls.with_ref[ComponentType.request_bodies.name] = {}
-        cls.without_ref[ComponentType.request_bodies.name] = {}
+        cls.reset()
 
-        components = raw_api.get(ComponentType.components.value)
+        components = raw_api.get("components")
         if not components:
             print("No components in this api")
             return
 
         schemas = components.get(ComponentType.schemas.value)
+        headers = components.get(ComponentType.headers.value)
+        responses = components.get(ComponentType.responses.value)
+        parameters = components.get(ComponentType.parameters.value)
+        examples = components.get(ComponentType.examples.value)
         request_bodies = components.get(ComponentType.request_bodies.value)
+        links = components.get(ComponentType.links.value)
+        callbacks = components.get(ComponentType.callbacks.value)
 
         if schemas:
             cls._search_components_for_ref(
                 components=schemas,
                 component_type=ComponentType.schemas,
             )
-
+        if headers:
+            cls._search_components_for_ref(
+                components=headers,
+                component_type=ComponentType.headers,
+            )
+        if responses:
+            cls._search_components_for_ref(
+                components=responses,
+                component_type=ComponentType.responses,
+            )
+        if parameters:
+            cls._search_components_for_ref(
+                components=parameters,
+                component_type=ComponentType.parameters,
+            )
+        if examples:
+            cls._search_components_for_ref(
+                components=examples,
+                component_type=ComponentType.examples,
+            )
         if request_bodies:
             cls._search_components_for_ref(
                 components=request_bodies,
                 component_type=ComponentType.request_bodies,
             )
+        if links:
+            cls._search_components_for_ref(
+                components=links,
+                component_type=ComponentType.links,
+            )
+        if callbacks:
+            cls._search_components_for_ref(
+                components=callbacks,
+                component_type=ComponentType.callbacks,
+            )
 
         if schemas:
             cls._consolidate_components(component_type=ComponentType.schemas)
-
+        if headers:
+            cls._consolidate_components(component_type=ComponentType.headers)
+        if responses:
+            cls._consolidate_components(component_type=ComponentType.responses)
+        if parameters:
+            cls._consolidate_components(component_type=ComponentType.parameters)
+        if examples:
+            cls._consolidate_components(component_type=ComponentType.examples)
         if request_bodies:
             cls._consolidate_components(component_type=ComponentType.request_bodies)
+        if links:
+            cls._consolidate_components(component_type=ComponentType.links)
+        if callbacks:
+            cls._consolidate_components(component_type=ComponentType.callbacks)
 
 
 class OpenApi302(OpenApi, BaseModelForbid):

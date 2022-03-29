@@ -19,40 +19,40 @@ retro_fixture = FixturesVersion(
 )
 
 
-# @pytest.mark.parametrize("file_path", retro_fixture.ok)
-# @pytest.mark.asyncio
-# async def test_parse_retro_api_ok(
-#     file_path: str,
-# ) -> None:
-#     raw_api = await openapydantic.load_spec(file_path)
-#     openapydantic.OpenApi302(**raw_api)
+@pytest.mark.parametrize("file_path", retro_fixture.ok)
+@pytest.mark.asyncio
+async def test_parse_retro_api_ok(
+    file_path: str,
+) -> None:
+    raw_api = await openapydantic.load_spec(file_path)
+    openapydantic.OpenApi302(**raw_api)
 
 
-# @pytest.mark.parametrize("file_path", retro_fixture.ko)
-# @pytest.mark.asyncio
-# async def test_parse_retro_api_ko(
-#     file_path: str,
-# ) -> None:
-#     with pytest.raises(Exception):
-#         raw_api = await openapydantic.load_spec(file_path)
-#         openapydantic.OpenApi302(**raw_api)
+@pytest.mark.parametrize("file_path", retro_fixture.ko)
+@pytest.mark.asyncio
+async def test_parse_retro_api_ko(
+    file_path: str,
+) -> None:
+    with pytest.raises(Exception):
+        raw_api = await openapydantic.load_spec(file_path)
+        openapydantic.OpenApi302(**raw_api)
 
 
-# @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ok)
-# @pytest.mark.asyncio
-# async def test_load_api_ok(
-#     file_path: str,
-# ) -> None:
-#     raw_api = await openapydantic.load_spec(file_path)
-#     openapydantic.OpenApi302(**raw_api)
-#     # assert raw_api == json.loads(
-#     #     api.json(
-#     #         by_alias=True,
-#     #         exclude_defaults=True,
-#     #         exclude_none=True,
-#     #         exclude_unset=True,
-#     #     )
-#     # )
+@pytest.mark.parametrize("file_path", fixtures_v3_0_2.ok)
+@pytest.mark.asyncio
+async def test_load_api_ok(
+    file_path: str,
+) -> None:
+    raw_api = await openapydantic.load_spec(file_path)
+    openapydantic.OpenApi302(**raw_api)
+    # assert raw_api == json.loads(
+    #     api.json(
+    #         by_alias=True,
+    #         exclude_defaults=True,
+    #         exclude_none=True,
+    #         exclude_unset=True,
+    #     )
+    # )
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ko)
@@ -75,13 +75,13 @@ async def test_parse_api_valid_spec_extension(
     print(api.as_clean_json())
 
 
-@pytest.mark.asyncio
-async def test_parse_api_invalid_spec_extended(
-    fixture_loader: FixtureLoader,
-) -> None:
-    with pytest.raises(Exception):
-        raw_api = fixture_loader.load_yaml("y-extended.yaml")
-        openapydantic.OpenApi302(**raw_api)
+# @pytest.mark.asyncio
+# async def test_parse_api_invalid_spec_extended(
+#     fixture_loader: FixtureLoader,
+# ) -> None:
+#     with pytest.raises(Exception):
+#         raw_api = fixture_loader.load_yaml("y-extended.yaml")
+#         openapydantic.OpenApi302(**raw_api)
 
 
 @pytest.mark.asyncio
@@ -102,13 +102,13 @@ async def test_parse_api_ref_invalid_path_format(
         openapydantic.OpenApi302(**raw_api)
 
 
-# @pytest.mark.asyncio
-# async def test_parse_api_oneshot() -> None:
-#     raw_api = await openapydantic.load_spec(
-#         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components.yaml"
-#     )
-#     api = openapydantic.OpenApi302(**raw_api)
-#     print(api.as_clean_json())
+@pytest.mark.asyncio
+async def test_parse_api_oneshot() -> None:
+    raw_api = await openapydantic.load_spec(
+        "/workspaces/openapydantic/tests/unit/v3.0.0/fixture/ok/iot.yaml"
+    )
+    api = openapydantic.OpenApi302(**raw_api)
+    print(api.as_clean_json())
 
 
 @pytest.mark.asyncio
