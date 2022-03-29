@@ -7,6 +7,7 @@ from tests.unit.conftest import SpecVersion
 from tests.unit.conftest import list_specific_fixtures_version
 
 OpenApi302 = openapydantic.OpenApi302
+ComponentsParser = openapydantic.openapi_302.ComponentsParser
 
 fixtures_v3_0_0 = list_specific_fixtures_version(version=SpecVersion.v3_0_0)
 fixtures_v3_0_1 = list_specific_fixtures_version(version=SpecVersion.v3_0_1)
@@ -107,3 +108,19 @@ async def test_parse_api_oneshot() -> None:
     )
     api = openapydantic.OpenApi302(**raw_api)
     print(api.as_clean_json())
+
+
+@pytest.mark.asyncio
+async def test_components_parser() -> None:
+    raw_api = await openapydantic.load_spec(
+        "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components.yaml"
+    )
+    ComponentsParser.parse(raw_api=raw_api)
+    print(ComponentsParser.without_ref)
+    print("=========")
+    print(ComponentsParser.with_ref)
+    print("=========")
+    ComponentsParser.consolidate_schemas()
+    print(ComponentsParser.without_ref)
+    print("=========")
+    print(ComponentsParser.with_ref)
