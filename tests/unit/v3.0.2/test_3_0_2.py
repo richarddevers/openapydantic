@@ -65,13 +65,14 @@ async def test_parse_api_ko(
         openapydantic.OpenApi302(**raw_api)
 
 
-# @pytest.mark.asyncio
-# async def test_parse_api_valid_spec_extension(
-#     fixture_loader: FixtureLoader,
-# ) -> None:
-#     raw_api = fixture_loader.load_yaml("x-extended.yaml")
+@pytest.mark.asyncio
+async def test_parse_api_valid_spec_extension(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml("x-extended.yaml")
 
-#     openapydantic.OpenApi302(**raw_api)
+    api = openapydantic.OpenApi302(**raw_api)
+    print(api.as_clean_json())
 
 
 @pytest.mark.asyncio
@@ -115,8 +116,7 @@ async def test_components_1() -> None:
     raw_api = await openapydantic.load_spec(
         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_1.yaml"
     )
-    # ComponentsParser.parse(raw_api=raw_api)
-    # ComponentsParser.consolidate_schemas()
+
     api = openapydantic.OpenApi302(**raw_api)
     print(api.as_clean_json())
 
@@ -126,8 +126,7 @@ async def test_components_2() -> None:
     raw_api = await openapydantic.load_spec(
         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_2.yaml"
     )
-    # ComponentsParser.parse(raw_api=raw_api)
-    # ComponentsParser.consolidate_schemas()
+
     api = openapydantic.OpenApi302(**raw_api)
     print(api.as_clean_json())
 
@@ -137,7 +136,6 @@ async def test_components_3() -> None:
     raw_api = await openapydantic.load_spec(
         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_3.yaml"
     )
-    # ComponentsParser.parse(raw_api=raw_api)
-    # ComponentsParser.consolidate_schemas()
+
     api = openapydantic.OpenApi302(**raw_api)
     print(api.as_clean_json())

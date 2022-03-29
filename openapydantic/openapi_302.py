@@ -15,6 +15,18 @@ Field = pydantic.Field
 # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md
 
 
+class ComponentType(enum.Enum):
+    components = "components"
+    schemas = "schemas"
+    headers = "headers"
+    responses = "responses"
+    parameters = "parameters"
+    examples = "examples"
+    request_bodies = "requestBodies"
+    links = "links"
+    callbacks = "callbacks"
+
+
 class RefModel(pydantic.BaseModel):
     ref: t.Optional[str] = Field(
         None,
@@ -23,7 +35,15 @@ class RefModel(pydantic.BaseModel):
 
     def as_clean_json(
         self,
+        exclude_components: bool = True,
     ):
+        if exclude_components:
+            return self.json(
+                by_alias=True,
+                exclude_unset=True,
+                exclude_none=True,
+                exclude={ComponentType.components.value},
+            )
         return self.json(
             by_alias=True,
             exclude_unset=True,
@@ -32,55 +52,68 @@ class RefModel(pydantic.BaseModel):
 
     def as_clean_dict(
         self,
+        exclude_components: bool = True,
     ):
+        if exclude_components:
+            return self.dict(
+                by_alias=True,
+                exclude_unset=True,
+                exclude_none=True,
+                exclude={ComponentType.components.value},
+            )
         return self.dict(
             by_alias=True,
             exclude_unset=True,
             exclude_none=True,
         )
 
-
-class BaseModel(RefModel):
-    class Config:
-        extra = "forbid"
-        # extra = "allow"
-        # extra = "ignore"
-        use_enum_values = True
-
-
-class BaseModelSpecificationExtension(RefModel):
-    class Config:
-        # extra = "forbid"
-        extra = "allow"
-        # extra = "ignore"
-        use_enum_values = True
-
-    @pydantic.root_validator(pre=True, allow_reuse=True)
+    @pydantic.root_validator(
+        pre=True,
+        allow_reuse=True,
+    )
     def validate_root(
         cls,
         values: t.Dict[str, str],
-    ) -> t.Dict[str, str]:
+    ) -> t.Dict[str, t.Any]:
         ref = values.get("$ref")
         if ref:
-            # load ref
+            # load reference from ComponentsParser
             ref_type, ref_key = ComponentsParser.get_ref_data(ref)
-            ref_found = ComponentsParser.without_ref[ref_type.name].get(ref_key)
+            ref_found: t.Dict[str, t.Any] = ComponentsParser.without_ref[
+                ref_type.name
+            ].get(ref_key)
+
             if not ref_found:
                 raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
             return ref_found
-        else:
-            # check spec extension:
-            native_attr = set(cls.__fields__.keys())  # all class attr key
-            setted_attr = [k for k, v in values.items() if v]  # setted attr key
-            extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
-            clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
-            for attr in clean_extra_attr:
-                if not attr.startswith("x-"):
-                    raise ValueError(
-                        f"Schema extension:{attr} must be conform to openapi spec extension(^x-)"
-                    )
-            return values
+        return values
+
+    #     # check spec extension:
+    #     native_attr = set(cls.__fields__.keys())  # all class attr key
+    #     setted_attr = [k for k, v in values.items() if v]  # setted attr key
+    #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
+    #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
+    #     for attr in clean_extra_attr:
+    #         breakpoint()
+    #         if not attr.startswith("x-"):
+    #             raise ValueError(
+    #                 f"Schema extension:{attr} must be conform to openapi "
+    #                 f"specication (^x-)"
+    #             )
+    #     return values
+
+
+class BaseModelForbid(RefModel):
+    class Config:
+        extra = "forbid"
+        use_enum_values = True
+
+
+class BaseModelAllow(RefModel):
+    class Config:
+        extra = "allow"
+        use_enum_values = True
 
 
 class JsonType(enum.Enum):
@@ -101,7 +134,7 @@ class SecurityIn(enum.Enum):
 Discriminator = t.Mapping[str, t.Dict[str, str]]
 
 
-class XML(BaseModel):
+class XML(BaseModelForbid):
     name: t.Optional[str]
     namespace: t.Optional[pydantic.AnyUrl]
     prefix: t.Optional[str]
@@ -109,7 +142,7 @@ class XML(BaseModel):
     wrapped: t.Optional[bool]
 
 
-class ExternalDocs(BaseModel):
+class ExternalDocs(BaseModelForbid):
     description: t.Optional[str]
     url: t.Optional[pydantic.AnyUrl]
 
@@ -120,7 +153,7 @@ SchemaUnion = t.Union[
 ]
 
 
-class Schema(BaseModelSpecificationExtension):
+class Schema(BaseModelAllow):
     title: t.Optional[str]
     multiple_of: t.Optional[t.List[SchemaUnion]] = Field(
         None,
@@ -212,14 +245,14 @@ class Schema(BaseModelSpecificationExtension):
     deprecated: t.Optional[str]
 
 
-class Example(BaseModel):
+class Example(BaseModelForbid):
     summary: t.Optional[str]
     description: t.Optional[str]
     value: t.Any
     externalValue: t.Optional[pydantic.AnyUrl]
 
 
-class Header(BaseModel):
+class Header(BaseModelForbid):
     description: t.Optional[str]
     required: t.Optional[bool]
     deprecated: t.Optional[bool]
@@ -236,7 +269,7 @@ class Header(BaseModel):
 HeadersUnion = t.Optional[t.Mapping[str, Header]]
 
 
-class Encoding(BaseModel):
+class Encoding(BaseModelForbid):
     content_type: t.Optional[t.Union[str, MediaType]] = Field(
         None,
         alias="contentType",
@@ -263,26 +296,26 @@ class MediaTypeObject(pydantic.BaseModel):
 MediaTypeMap = t.Mapping[MediaType, MediaTypeObject]
 
 
-class Response(BaseModel):
+class Response(BaseModelForbid):
     description: str
     content: t.Optional[MediaTypeMap]
     headers: HeadersUnion
     links: t.Optional[t.Mapping[str, "Link"]]
 
 
-class RequestBody(BaseModel):
+class RequestBody(BaseModelForbid):
     description: t.Optional[str]
     required: t.Optional[bool]
-    content: MediaTypeMap
+    content: t.Optional[MediaTypeMap]
 
 
-class ServerVariables(BaseModel):
+class ServerVariables(BaseModelForbid):
     enum: t.Optional[t.List[str]]
     default: str
     description: t.Optional[str]
 
 
-class Server(BaseModelSpecificationExtension):
+class Server(BaseModelAllow):
     url: t.Optional[str]
     description: t.Optional[str]
     variables: t.Optional[t.Mapping[str, ServerVariables]]
@@ -291,7 +324,7 @@ class Server(BaseModelSpecificationExtension):
 SecurityRequirement = t.Mapping[str, t.List[str]]
 
 
-class Link(BaseModel):
+class Link(BaseModelForbid):
     operation_ref: t.Optional[str] = Field(
         None,
         alias="operationRef",
@@ -309,7 +342,7 @@ class Link(BaseModel):
     server: t.Optional[Server]
 
 
-class Parameter(BaseModel):
+class Parameter(BaseModelForbid):
     # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#parameterObject
     name: str
     in_: str = Field(
@@ -339,7 +372,7 @@ class Parameter(BaseModel):
 Callback = t.Mapping[str, "PathItem"]
 
 
-class Operation(BaseModelSpecificationExtension):
+class Operation(BaseModelAllow):
     tags: t.Optional[t.List[str]]
     summary: t.Optional[str]
     description: t.Optional[str]
@@ -363,7 +396,7 @@ class Operation(BaseModelSpecificationExtension):
     servers: t.Optional[t.List[Server]]
 
 
-class PathItem(BaseModelSpecificationExtension):
+class PathItem(BaseModelAllow):
     summary: t.Optional[str]
     description: t.Optional[str]
     get: t.Optional[Operation]
@@ -378,7 +411,7 @@ class PathItem(BaseModelSpecificationExtension):
     parameters: t.Optional[t.Any]
 
 
-class OAuthFlowImplicit(BaseModel):
+class OAuthFlowImplicit(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -387,7 +420,7 @@ class OAuthFlowImplicit(BaseModel):
     authorization_url: pydantic.AnyUrl = Field(alias="authorizationUrl")
 
 
-class OAuthFlowPassword(BaseModel):
+class OAuthFlowPassword(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -396,7 +429,7 @@ class OAuthFlowPassword(BaseModel):
     token_url: pydantic.AnyUrl = Field(alias="tokenUrl")
 
 
-class OAuthFlowClientCredentials(BaseModel):
+class OAuthFlowClientCredentials(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -405,7 +438,7 @@ class OAuthFlowClientCredentials(BaseModel):
     token_url: pydantic.AnyUrl = Field(alias="tokenUrl")
 
 
-class OAuthFlowAuthorizationCode(BaseModel):
+class OAuthFlowAuthorizationCode(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -415,7 +448,7 @@ class OAuthFlowAuthorizationCode(BaseModel):
     authorization_url: pydantic.AnyUrl = Field(alias="authorizationUrl")
 
 
-class OAuthFlows(BaseModel):
+class OAuthFlows(BaseModelForbid):
     implicit: t.Optional[OAuthFlowImplicit]
     password: t.Optional[OAuthFlowPassword]
     client_credentials: t.Optional[OAuthFlowClientCredentials] = Field(
@@ -428,26 +461,26 @@ class OAuthFlows(BaseModel):
     )
 
 
-class SecuritySchemeOAuth2(BaseModel):
+class SecuritySchemeOAuth2(BaseModelForbid):
     type: str = "oauth2"
     description: t.Optional[str]
     flows: OAuthFlows
 
 
-class SecuritySchemeApiKey(BaseModel):
+class SecuritySchemeApiKey(BaseModelForbid):
     type: str = "apiKey"
     description: t.Optional[str]
     name: str
     in_: SecurityIn = Field(alias="in")
 
 
-class SecuritySchemeOpenIdConnect(BaseModel):
+class SecuritySchemeOpenIdConnect(BaseModelForbid):
     type: str = "openIdConnect"
     description: t.Optional[str]
     open_id_connect_url: str = Field(alias="openIdConnectUrl")
 
 
-class SecuritySchemeHttp(BaseModel):
+class SecuritySchemeHttp(BaseModelForbid):
     type: str = "http"
     description: t.Optional[str]
     scheme: str
@@ -465,7 +498,7 @@ SecuritySchemeUnion = t.Union[
 ]
 
 
-class Components(BaseModel):
+class Components(BaseModelForbid):
     headers: HeadersUnion
     schemas: t.Optional[t.Mapping[str, Schema]]
     responses: t.Optional[t.Mapping[str, Response]]
@@ -486,18 +519,18 @@ class Components(BaseModel):
 Paths = t.Mapping[str, PathItem]
 
 
-class Contact(BaseModel):
+class Contact(BaseModelForbid):
     name: t.Optional[str]
     url: t.Optional[pydantic.AnyUrl]
     email: t.Optional[pydantic.EmailStr]
 
 
-class License(BaseModel):
+class License(BaseModelForbid):
     name: str
     url: t.Optional[pydantic.AnyUrl]
 
 
-class Info(BaseModelSpecificationExtension):
+class Info(BaseModelAllow):
     contact: t.Optional[Contact]
     description: t.Optional[str]
     license: t.Optional[License]
@@ -509,7 +542,7 @@ class Info(BaseModelSpecificationExtension):
     version: str
 
 
-class Tag(BaseModel):
+class Tag(BaseModelForbid):
     name: str
     description: t.Optional[str]
     external_docs: t.Optional[ExternalDocs] = Field(
@@ -519,7 +552,6 @@ class Tag(BaseModel):
 
 
 AllClass = t.Union[
-    # Components,
     Contact,
     Encoding,
     Example,
@@ -551,99 +583,18 @@ AllClass = t.Union[
 ]
 
 
-class ComponentType(enum.Enum):
-    schemas = "schemas"
-    headers = "headers"
-    responses = "responses"
-    parameters = "parameters"
-    examples = "examples"
-    request_bodies = "requestBodies"
-    links = "links"
-    callbacks = "callbacks"
-
-
 class ComponentsParser:
-    with_ref = {}
-    without_ref = {}
+    with_ref: t.Dict[str, t.Any] = {}
+    without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
     raw_api = {}
-    current_key: str
-
-    @staticmethod
-    def validate_ref(ref: str) -> None:
-        if ".yaml" in ref or ".json" in ref:
-            raise NotImplementedError("File reference not implemented")
-        if not ref.startswith("#/"):
-            raise ValueError(f"reference {ref} has invalid format")
 
     @classmethod
-    def find_ref(
-        cls,
-        *,
-        obj: t.Any,
-    ):
-        if isinstance(obj, list):
-            for elt in obj:  # type: ignore
-                cls.find_ref(obj=elt)
-
-        if isinstance(obj, dict):
-            ref = obj.get("$ref")  # type: ignore
-            if ref:
-                cls.validate_ref(ref=ref)  # type: ignore
-                cls.ref_find = True
-
-            for key, data in obj.items():  # type: ignore
-                cls.find_ref(obj=obj.get(key))  # type: ignore
-
-    @classmethod
-    def search_schema_for_ref(
-        cls,
-        *,
-        key: str,
-        value: t.Dict[str, t.Any],
-    ):
+    def reset(cls):
+        cls.with_ref = {}
+        cls.without_ref = {}
         cls.ref_find = False
-        cls.find_ref(
-            obj=value,
-        )
-
-        if cls.ref_find:
-            cls.with_ref[ComponentType.schemas.name][key] = value  # type: ignore
-        else:
-            cls.without_ref[ComponentType.schemas.name][key] = value  # type: ignore
-
-    @classmethod
-    def search_schemas_for_ref(
-        cls,
-        *,
-        schemas: t.Dict[str, t.Any],
-    ):
-        for key, value in schemas.items():
-            cls.search_schema_for_ref(
-                key=key,
-                value=value,
-            )
-
-    @classmethod
-    def parse(
-        cls,
-        *,
-        raw_api: t.Dict[str, t.Any],
-    ):
-        cls.with_ref[ComponentType.schemas.name] = {}  # type: ignore
-        cls.without_ref[ComponentType.schemas.name] = {}  # type: ignore
-
-        components = raw_api.get("components")
-        if not components:
-            print("No components in this api")
-            return
-
-        schemas = components.get("schemas")
-        if not schemas:
-            print("No schemas in components section")
-            return
-        cls.search_schemas_for_ref(schemas=schemas)
-        cls.consolidate_schemas()
+        cls.raw_api = {}
 
     @staticmethod
     def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
@@ -652,31 +603,135 @@ class ComponentsParser:
         ref_key = ref_split[-1]
         return ref_type, ref_key
 
-    @classmethod
-    def consolidate_schemas(cls) -> None:
-        with_ref_copy = copy.deepcopy(cls.with_ref["schemas"])  # type: ignore
-        for key, value in with_ref_copy.items():  # type: ignore
-            cls.ref_find = False
-            cls.current_key = key
-            schema = Schema(**value)  # type: ignore
-            schema_dict = schema.as_clean_dict()  # type: ignore
+    @staticmethod
+    def _validate_ref(ref: str) -> None:
+        if ".yaml" in ref or ".json" in ref:
+            raise NotImplementedError("File reference not implemented")
+        if not ref.startswith("#/"):
+            raise ValueError(f"reference {ref} has invalid format")
 
-            cls.search_schema_for_ref(
-                key=key,  # type: ignore
-                value=schema_dict,
+    @classmethod
+    def _find_ref(
+        cls,
+        *,
+        obj: t.Any,
+    ):
+        if isinstance(obj, list):
+            for elt in obj:  # type: ignore
+                cls._find_ref(obj=elt)
+
+        if isinstance(obj, dict):
+            ref = obj.get("$ref")  # type: ignore
+            if ref:
+                cls._validate_ref(ref=ref)  # type: ignore
+                cls.ref_find = True
+
+            for key in obj:  # type: ignore
+                cls._find_ref(obj=obj.get(key))  # type: ignore
+
+    @classmethod
+    def _search_component_for_ref(
+        cls,
+        *,
+        key: str,
+        value: t.Dict[str, t.Any],
+        component_type: ComponentType,
+    ):
+        cls.ref_find = False
+        cls._find_ref(
+            obj=value,
+        )
+
+        if cls.ref_find:
+            cls.with_ref[component_type.name][key] = value
+        else:
+            cls.without_ref[component_type.name][key] = value
+
+    @classmethod
+    def _search_components_for_ref(
+        cls,
+        *,
+        components: t.Dict[str, t.Any],
+        component_type: ComponentType,
+    ):
+        for key, value in components.items():
+            cls._search_component_for_ref(
+                key=key,
+                value=value,
+                component_type=component_type,
+            )
+
+    @classmethod
+    def _consolidate_components(
+        cls,
+        component_type: ComponentType,
+    ) -> None:
+        component_dict = {}
+        component_key = component_type.name
+        with_ref_copy = copy.deepcopy(cls.with_ref[component_key])
+        for key, value in with_ref_copy.items():
+            cls.ref_find = False
+
+            if component_type == ComponentType.schemas:
+                component = Schema(**value)
+            elif component_type == ComponentType.request_bodies:
+                component = RequestBody(**value)
+
+            component_dict = component.as_clean_dict()  # type: ignore
+            cls._search_component_for_ref(
+                key=key,
+                value=component_dict,
+                component_type=component_type,
             )
 
             if cls.ref_find:
-                cls.with_ref["schemas"][key] = schema_dict  # type: ignore
-                cls.consolidate_schemas()
+                cls.with_ref[component_key][key] = component_dict
+                cls._consolidate_components(component_type=component_type)
             else:
-                cls.without_ref["schemas"][key] = schema_dict  # type: ignore
-                del cls.with_ref["schemas"][key]  # type: ignore
-                if not len(cls.with_ref):  # type: ignore
+                cls.without_ref[component_key][key] = component_dict
+                del cls.with_ref[component_key][key]
+                if not len(cls.with_ref):
                     break
 
+    @classmethod
+    def parse(
+        cls,
+        *,
+        raw_api: t.Dict[str, t.Any],
+    ):
+        cls.with_ref[ComponentType.schemas.name] = {}
+        cls.without_ref[ComponentType.schemas.name] = {}
+        cls.with_ref[ComponentType.request_bodies.name] = {}
+        cls.without_ref[ComponentType.request_bodies.name] = {}
 
-class OpenApi302(OpenApi, BaseModel):
+        components = raw_api.get(ComponentType.components.value)
+        if not components:
+            print("No components in this api")
+            return
+
+        schemas = components.get(ComponentType.schemas.value)
+        request_bodies = components.get(ComponentType.request_bodies.value)
+
+        if schemas:
+            cls._search_components_for_ref(
+                components=schemas,
+                component_type=ComponentType.schemas,
+            )
+
+        if request_bodies:
+            cls._search_components_for_ref(
+                components=request_bodies,
+                component_type=ComponentType.request_bodies,
+            )
+
+        if schemas:
+            cls._consolidate_components(component_type=ComponentType.schemas)
+
+        if request_bodies:
+            cls._consolidate_components(component_type=ComponentType.request_bodies)
+
+
+class OpenApi302(OpenApi, BaseModelForbid):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
     components: t.Optional[Components]
     openapi: OpenApiVersion
@@ -690,6 +745,6 @@ class OpenApi302(OpenApi, BaseModel):
         alias="externalDocs",
     )
 
-    def __init__(self, **data) -> None:  # type: ignore
-        ComponentsParser.parse(raw_api=data)  # type: ignore
-        super().__init__(**data)  # type: ignore
+    def __init__(self, **data: t.Any) -> None:
+        ComponentsParser.parse(raw_api=data)
+        super().__init__(**data)
