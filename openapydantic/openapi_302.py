@@ -14,20 +14,25 @@ Field = pydantic.Field
 
 # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md
 
-Enum = enum.Enum
-
 
 class RefModel(pydantic.BaseModel):
-    ref: t.Optional[str] = Field(None, alias="$ref")
+    ref: t.Optional[str] = Field(
+        None,
+        alias="$ref",
+    )
 
-    def as_clean_json(self):
+    def as_clean_json(
+        self,
+    ):
         return self.json(
             by_alias=True,
             exclude_unset=True,
             exclude_none=True,
         )
 
-    def as_clean_dict(self):
+    def as_clean_dict(
+        self,
+    ):
         return self.dict(
             by_alias=True,
             exclude_unset=True,
@@ -40,6 +45,7 @@ class BaseModel(RefModel):
         extra = "forbid"
         # extra = "allow"
         # extra = "ignore"
+        use_enum_values = True
 
 
 class BaseModelSpecificationExtension(RefModel):
@@ -47,18 +53,18 @@ class BaseModelSpecificationExtension(RefModel):
         # extra = "forbid"
         extra = "allow"
         # extra = "ignore"
+        use_enum_values = True
 
     @pydantic.root_validator(pre=True, allow_reuse=True)
     def validate_root(
         cls,
         values: t.Dict[str, str],
     ) -> t.Dict[str, str]:
-        # check ref
         ref = values.get("$ref")
         if ref:
+            # load ref
             ref_type, ref_key = ComponentsParser.get_ref_data(ref)
             ref_found = ComponentsParser.without_ref[ref_type.name].get(ref_key)
-
             if not ref_found:
                 raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
@@ -109,8 +115,8 @@ class ExternalDocs(BaseModel):
 
 
 SchemaUnion = t.Union[
-    "Schema",
     t.Mapping[str, "Schema"],
+    "Schema",
 ]
 
 
@@ -560,8 +566,8 @@ class ComponentsParser:
     with_ref = {}
     without_ref = {}
     ref_find = False
-    ref_path = []
-    current_obj = None
+    raw_api = {}
+    current_key: str
 
     @staticmethod
     def validate_ref(ref: str) -> None:
@@ -577,17 +583,17 @@ class ComponentsParser:
         obj: t.Any,
     ):
         if isinstance(obj, list):
-            for elt in enumerate(obj):
+            for elt in obj:  # type: ignore
                 cls.find_ref(obj=elt)
 
         if isinstance(obj, dict):
-            ref = obj.get("$ref")
+            ref = obj.get("$ref")  # type: ignore
             if ref:
-                cls.validate_ref(ref=ref)
+                cls.validate_ref(ref=ref)  # type: ignore
                 cls.ref_find = True
 
-            for key, data in obj.items():
-                cls.find_ref(obj=obj.get(key))
+            for key, data in obj.items():  # type: ignore
+                cls.find_ref(obj=obj.get(key))  # type: ignore
 
     @classmethod
     def search_schema_for_ref(
@@ -602,9 +608,9 @@ class ComponentsParser:
         )
 
         if cls.ref_find:
-            cls.with_ref[ComponentType.schemas.name][key] = value
+            cls.with_ref[ComponentType.schemas.name][key] = value  # type: ignore
         else:
-            cls.without_ref[ComponentType.schemas.name][key] = value
+            cls.without_ref[ComponentType.schemas.name][key] = value  # type: ignore
 
     @classmethod
     def search_schemas_for_ref(
@@ -624,8 +630,8 @@ class ComponentsParser:
         *,
         raw_api: t.Dict[str, t.Any],
     ):
-        cls.with_ref[ComponentType.schemas.name] = {}
-        cls.without_ref[ComponentType.schemas.name] = {}
+        cls.with_ref[ComponentType.schemas.name] = {}  # type: ignore
+        cls.without_ref[ComponentType.schemas.name] = {}  # type: ignore
 
         components = raw_api.get("components")
         if not components:
@@ -637,8 +643,7 @@ class ComponentsParser:
             print("No schemas in components section")
             return
         cls.search_schemas_for_ref(schemas=schemas)
-
-    ########
+        cls.consolidate_schemas()
 
     @staticmethod
     def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
@@ -649,19 +654,26 @@ class ComponentsParser:
 
     @classmethod
     def consolidate_schemas(cls) -> None:
-        with_ref_copy = copy.deepcopy(cls.with_ref["schemas"])
-        for key, value in with_ref_copy.items():
+        with_ref_copy = copy.deepcopy(cls.with_ref["schemas"])  # type: ignore
+        for key, value in with_ref_copy.items():  # type: ignore
             cls.ref_find = False
-            schema = Schema(**value)
+            cls.current_key = key
+            schema = Schema(**value)  # type: ignore
+            schema_dict = schema.as_clean_dict()  # type: ignore
+
             cls.search_schema_for_ref(
-                key=key,
-                value=schema.as_clean_dict(),
+                key=key,  # type: ignore
+                value=schema_dict,
             )
 
-            if not cls.ref_find:
-                del cls.with_ref["schemas"][key]
-            else:
+            if cls.ref_find:
+                cls.with_ref["schemas"][key] = schema_dict  # type: ignore
                 cls.consolidate_schemas()
+            else:
+                cls.without_ref["schemas"][key] = schema_dict  # type: ignore
+                del cls.with_ref["schemas"][key]  # type: ignore
+                if not len(cls.with_ref):  # type: ignore
+                    break
 
 
 class OpenApi302(OpenApi, BaseModel):
@@ -679,6 +691,5 @@ class OpenApi302(OpenApi, BaseModel):
     )
 
     def __init__(self, **data) -> None:  # type: ignore
-        ComponentsParser.parse(raw_api=data)
+        ComponentsParser.parse(raw_api=data)  # type: ignore
         super().__init__(**data)  # type: ignore
-        object.__setattr__(self, "__ref__", {})
