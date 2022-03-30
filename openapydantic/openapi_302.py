@@ -10,15 +10,14 @@ import openapydantic
 
 Field = pydantic.Field
 
-CleanModel = openapydantic.common.CleanModel
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 ComponentType = openapydantic.common.ComponentType
+OpenApiVersion = openapydantic.common.OpenApiVersion
 HTTPStatusCode = openapydantic.common.HTTPStatusCode
 MediaType = openapydantic.common.MediaType
-OpenApi = openapydantic.common.OpenApi
-OpenApiVersion = openapydantic.common.OpenApiVersion
 
 
-class RefModel(CleanModel):
+class RefModel(OpenApiBaseModel):
     ref: t.Optional[str] = Field(
         None,
         alias="$ref",
@@ -705,7 +704,7 @@ class ComponentsResolver:
                 cls._consolidate_components(component_type=elt)
 
 
-class OpenApi302(OpenApi, CleanModel):
+class OpenApi302(OpenApi, OpenApiBaseModel):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
     components: t.Optional[Components]
     openapi: OpenApiVersion

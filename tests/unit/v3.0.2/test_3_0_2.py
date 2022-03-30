@@ -9,8 +9,10 @@ list_specific_fixtures_version = conftest.list_specific_fixtures_version
 SpecVersion = conftest.SpecVersion
 FixtureLoader = conftest.FixtureLoader
 FixturesVersion = conftest.FixturesVersion
+OpenApiVersion = openapydantic.OpenApiVersion
 
-load_api = openapydantic.openapi_302.load_api
+load_api = openapydantic.load_api
+load_api_302 = openapydantic.openapi_302.load_api
 
 fixtures_v3_0_0 = list_specific_fixtures_version(version=SpecVersion.v3_0_0)
 fixtures_v3_0_1 = list_specific_fixtures_version(version=SpecVersion.v3_0_1)
@@ -24,21 +26,25 @@ retro_fixture = FixturesVersion(
 
 @pytest.mark.parametrize("file_path", retro_fixture.ok)
 @pytest.mark.asyncio
-async def test_parse_retro_api_ok(
+async def test_retrocompatibility_ok(
     file_path: str,
 ) -> None:
-    raw_api = await openapydantic.load_spec(file_path)
-    load_api(raw_api=raw_api)
+    await load_api(
+        file_path=file_path,
+        version=OpenApiVersion.v3_0_2,
+    )
 
 
 @pytest.mark.parametrize("file_path", retro_fixture.ko)
 @pytest.mark.asyncio
-async def test_parse_retro_api_ko(
+async def test_retrocompatibility_ko(
     file_path: str,
 ) -> None:
     with pytest.raises(Exception):
-        raw_api = await openapydantic.load_spec(file_path)
-        load_api(raw_api=raw_api)
+        await load_api(
+            file_path=file_path,
+            version=OpenApiVersion.v3_0_2,
+        )
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ok)
@@ -46,8 +52,7 @@ async def test_parse_retro_api_ko(
 async def test_load_api_ok(
     file_path: str,
 ) -> None:
-    raw_api = await openapydantic.load_spec(file_path)
-    load_api(raw_api=raw_api)
+    await load_api(file_path=file_path)
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ko)
@@ -56,8 +61,7 @@ async def test_parse_api_ko(
     file_path: str,
 ) -> None:
     with pytest.raises(Exception):
-        raw_api = await openapydantic.load_spec(file_path)
-        load_api(raw_api=raw_api)
+        await load_api(file_path=file_path)
 
 
 @pytest.mark.asyncio
@@ -66,7 +70,7 @@ async def test_parse_api_ref_unmanaged_file_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-unmanaged-file-format.yaml")
-        load_api(raw_api=raw_api)
+        load_api_302(raw_api=raw_api)
 
 
 @pytest.mark.asyncio
@@ -75,7 +79,7 @@ async def test_parse_api_ref_invalid_path_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-invalid-path-format.yaml")
-        load_api(raw_api=raw_api)
+        load_api_302(raw_api=raw_api)
 
 
 @pytest.mark.parametrize(
@@ -89,6 +93,6 @@ async def test_reference_interpolation_x(
     raw_api = fixture_loader.load_yaml(filename=f"components_{api_index}.yaml")
     expected = fixture_loader.load_json(filename=f"components_{api_index}.json")
 
-    api = load_api(raw_api=raw_api)
+    api = load_api_302(raw_api=raw_api)
 
     assert expected == json.loads(api.as_clean_json())

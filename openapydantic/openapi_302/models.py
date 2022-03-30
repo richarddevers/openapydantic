@@ -8,11 +8,10 @@ import openapydantic
 
 Field = pydantic.Field
 
-CleanModel = openapydantic.common.CleanModel
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 ComponentType = openapydantic.common.ComponentType
 HTTPStatusCode = openapydantic.common.HTTPStatusCode
 MediaType = openapydantic.common.MediaType
-OpenApi = openapydantic.common.OpenApi
 
 
 class ComponentsResolver:
@@ -28,23 +27,9 @@ class ComponentsResolver:
         cls.without_ref = {}
         cls.ref_find = False
 
-        cls.with_ref[ComponentType.schemas.name] = {}
-        cls.with_ref[ComponentType.headers.name] = {}
-        cls.with_ref[ComponentType.responses.name] = {}
-        cls.with_ref[ComponentType.parameters.name] = {}
-        cls.with_ref[ComponentType.examples.name] = {}
-        cls.with_ref[ComponentType.request_bodies.name] = {}
-        cls.with_ref[ComponentType.links.name] = {}
-        cls.with_ref[ComponentType.callbacks.name] = {}
-
-        cls.without_ref[ComponentType.schemas.name] = {}
-        cls.without_ref[ComponentType.headers.name] = {}
-        cls.without_ref[ComponentType.responses.name] = {}
-        cls.without_ref[ComponentType.parameters.name] = {}
-        cls.without_ref[ComponentType.examples.name] = {}
-        cls.without_ref[ComponentType.request_bodies.name] = {}
-        cls.without_ref[ComponentType.links.name] = {}
-        cls.without_ref[ComponentType.callbacks.name] = {}
+        for elt in ComponentType:
+            cls.with_ref[elt.name] = {}
+            cls.without_ref[elt.name] = {}
 
     @staticmethod
     def _validate_ref(ref: str) -> None:
@@ -197,7 +182,7 @@ class ComponentsResolver:
                 cls._consolidate_components(component_type=elt)
 
 
-class RefModel(CleanModel):
+class RefModel(OpenApiBaseModel):
     ref: t.Optional[str] = Field(
         None,
         alias="$ref",
