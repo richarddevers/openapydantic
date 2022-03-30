@@ -8,8 +8,8 @@ SpecVersion = conftest.SpecVersion
 FixtureLoader = conftest.FixtureLoader
 FixturesVersion = conftest.FixturesVersion
 
+load_api = openapydantic.openapi_302.load_api
 OpenApi302 = openapydantic.OpenApi302
-ComponentsParser = openapydantic.openapi_302.ComponentsParser
 
 fixtures_v3_0_0 = list_specific_fixtures_version(version=SpecVersion.v3_0_0)
 fixtures_v3_0_1 = list_specific_fixtures_version(version=SpecVersion.v3_0_1)
@@ -27,7 +27,7 @@ async def test_parse_retro_api_ok(
     file_path: str,
 ) -> None:
     raw_api = await openapydantic.load_spec(file_path)
-    openapydantic.OpenApi302(**raw_api)
+    load_api(raw_api=raw_api)
 
 
 @pytest.mark.parametrize("file_path", retro_fixture.ko)
@@ -37,7 +37,7 @@ async def test_parse_retro_api_ko(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = await openapydantic.load_spec(file_path)
-        openapydantic.OpenApi302(**raw_api)
+        load_api(raw_api=raw_api)
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ok)
@@ -46,7 +46,7 @@ async def test_load_api_ok(
     file_path: str,
 ) -> None:
     raw_api = await openapydantic.load_spec(file_path)
-    openapydantic.OpenApi302(**raw_api)
+    load_api(raw_api=raw_api)
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ko)
@@ -56,7 +56,7 @@ async def test_parse_api_ko(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = await openapydantic.load_spec(file_path)
-        openapydantic.OpenApi302(**raw_api)
+        load_api(raw_api=raw_api)
 
 
 @pytest.mark.asyncio
@@ -65,7 +65,7 @@ async def test_parse_api_ref_unmanaged_file_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-unmanaged-file-format.yaml")
-        openapydantic.OpenApi302(**raw_api)
+        load_api(raw_api=raw_api)
 
 
 @pytest.mark.asyncio
@@ -74,7 +74,7 @@ async def test_parse_api_ref_invalid_path_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-invalid-path-format.yaml")
-        openapydantic.OpenApi302(**raw_api)
+        load_api(raw_api=raw_api)
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_components_interpolation_1(
     raw_api = fixture_loader.load_yaml(filename="components_1.yaml")
     expected = fixture_loader.load_json(filename="components_1.json")
 
-    api = openapydantic.OpenApi302(**raw_api)
+    api = load_api(raw_api=raw_api)
 
     assert expected == api.as_clean_dict()
 
@@ -96,7 +96,7 @@ async def test_components_interpolation_2(
     raw_api = fixture_loader.load_yaml(filename="components_2.yaml")
     expected = fixture_loader.load_json(filename="components_2.json")
 
-    api = openapydantic.OpenApi302(**raw_api)
+    api = load_api(raw_api=raw_api)
 
     assert expected == api.as_clean_dict()
 
@@ -108,7 +108,7 @@ async def test_components_interpolation_3(
     raw_api = fixture_loader.load_yaml(filename="components_3.yaml")
     expected = fixture_loader.load_json(filename="components_3.json")
 
-    api = openapydantic.OpenApi302(**raw_api)
+    api = load_api(raw_api=raw_api)
 
     assert expected == api.as_clean_dict()
 
@@ -120,6 +120,6 @@ async def test_components_interpolation_4(
     raw_api = fixture_loader.load_yaml(filename="components_4.yaml")
     expected = fixture_loader.load_json(filename="components_4.json")
 
-    api = openapydantic.OpenApi302(**raw_api)
+    api = load_api(raw_api=raw_api)
 
     assert expected == api.as_clean_dict()

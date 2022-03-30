@@ -1,6 +1,56 @@
 import enum
 import typing as t
 
+import pydantic
+
+
+class ComponentType(enum.Enum):
+    schemas = "schemas"
+    headers = "headers"
+    responses = "responses"
+    parameters = "parameters"
+    examples = "examples"
+    request_bodies = "requestBodies"
+    links = "links"
+    callbacks = "callbacks"
+
+
+class CleanModel(pydantic.BaseModel):
+    def as_clean_json(
+        self,
+        exclude_components: bool = True,
+    ):
+        if exclude_components:
+            return self.json(
+                by_alias=True,
+                exclude_unset=True,
+                exclude_none=True,
+                exclude={"components"},
+            )
+        return self.json(
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+        )
+
+    def as_clean_dict(
+        self,
+        exclude_components: bool = True,
+    ):
+        if exclude_components:
+            return self.dict(
+                by_alias=True,
+                exclude_unset=True,
+                exclude_none=True,
+                exclude={"components"},
+            )
+        return self.dict(
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+        )
+
+
 # could be:
 # -------
 # import http

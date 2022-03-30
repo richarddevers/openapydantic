@@ -1,3 +1,5 @@
+# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md
+
 import copy
 import enum
 import typing as t
@@ -6,60 +8,14 @@ import pydantic
 
 import openapydantic
 
+Field = pydantic.Field
+
+CleanModel = openapydantic.common.CleanModel
+ComponentType = openapydantic.common.ComponentType
 HTTPStatusCode = openapydantic.common.HTTPStatusCode
 MediaType = openapydantic.common.MediaType
 OpenApi = openapydantic.common.OpenApi
 OpenApiVersion = openapydantic.common.OpenApiVersion
-Field = pydantic.Field
-
-# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md
-
-
-class ComponentType(enum.Enum):
-    schemas = "schemas"
-    headers = "headers"
-    responses = "responses"
-    parameters = "parameters"
-    examples = "examples"
-    request_bodies = "requestBodies"
-    links = "links"
-    callbacks = "callbacks"
-
-
-class CleanModel(pydantic.BaseModel):
-    def as_clean_json(
-        self,
-        exclude_components: bool = True,
-    ):
-        if exclude_components:
-            return self.json(
-                by_alias=True,
-                exclude_unset=True,
-                exclude_none=True,
-                exclude={"components"},
-            )
-        return self.json(
-            by_alias=True,
-            exclude_unset=True,
-            exclude_none=True,
-        )
-
-    def as_clean_dict(
-        self,
-        exclude_components: bool = True,
-    ):
-        if exclude_components:
-            return self.dict(
-                by_alias=True,
-                exclude_unset=True,
-                exclude_none=True,
-                exclude={"components"},
-            )
-        return self.dict(
-            by_alias=True,
-            exclude_unset=True,
-            exclude_none=True,
-        )
 
 
 class RefModel(CleanModel):
@@ -87,11 +43,11 @@ class RefModel(CleanModel):
         # print("====== VALIDATE ROOT ======")
         # print(f"ref:{ref}")
         if ref:
-            # load reference from ComponentsParser
+            # load reference from ComponentsResolver
             ref_type, ref_key = cls._get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
             # print(f"ref_key:{ref_key}")
-            ref_found: t.Dict[str, t.Any] = ComponentsParser.without_ref[
+            ref_found: t.Dict[str, t.Any] = ComponentsResolver.without_ref[
                 ref_type.name
             ].get(ref_key)
 
@@ -601,7 +557,7 @@ AllClass = t.Union[
 ]
 
 
-class ComponentsParser:
+class ComponentsResolver:
     with_ref: t.Dict[str, t.Any] = {}
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
@@ -735,7 +691,7 @@ class ComponentsParser:
             cls.ref_find = False
             # print(f"INFO:{key}:{values}")
 
-            component_dict = ComponentsParser._get_component_object(
+            component_dict = ComponentsResolver._get_component_object(
                 component_type=component_type,
                 values=values,
             )
@@ -759,7 +715,7 @@ class ComponentsParser:
             cls._consolidate_components(component_type=component_type)
 
     @classmethod
-    def parse(
+    def resolve(
         cls,
         *,
         raw_api: t.Dict[str, t.Any],
@@ -784,7 +740,7 @@ class ComponentsParser:
             if component:
                 cls._consolidate_components(component_type=elt)
 
-        print(cls.find_ref_count)
+        # print(cls.find_ref_count)
 
 
 class OpenApi302(OpenApi, CleanModel):
@@ -801,10 +757,11 @@ class OpenApi302(OpenApi, CleanModel):
         alias="externalDocs",
     )
 
-    def __init__(self, **data: t.Any) -> None:
-        ComponentsParser.parse(raw_api=data)
-        super().__init__(**data)
-
     class Config:
         extra = "forbid"
         use_enum_values = True
+
+
+def load_api(raw_api: t.Dict[str, t.Any]) -> OpenApi302:
+    ComponentsResolver.resolve(raw_api=raw_api)
+    return OpenApi302(**raw_api)

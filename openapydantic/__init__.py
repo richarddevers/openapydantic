@@ -7,6 +7,7 @@ from openapydantic import openapi_302 as openapi_302
 
 OpenApi = common.OpenApi
 OpenApi302 = openapi_302.OpenApi302
+load_api_302 = openapi_302.load_api
 
 
 async def load_spec(
@@ -22,18 +23,17 @@ async def load_spec(
     return result
 
 
-async def parse_api(file_path: str) -> OpenApi:
-    api = await load_spec(file_path=file_path)
-
-    if not api:
+async def load_api(file_path: str) -> OpenApi:
+    raw_api = await load_spec(file_path=file_path)
+    if not raw_api:
         raise ValueError("Api specification looks empty")
 
-    openapi_version = api.get("openapi")
+    openapi_version = raw_api.get("openapi")
 
     if not openapi_version:
         raise ValueError("openapi version not specified")
 
     if openapi_version == OpenApi302.__version__.value:
-        return openapi_302.parse_api(**api)
+        return load_api_302(raw_api=raw_api)
 
     raise NotImplementedError(f"Unsupported openapi version:{openapi_version}")
