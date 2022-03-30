@@ -25,7 +25,10 @@ class CleanModel(pydantic.BaseModel):
                 by_alias=True,
                 exclude_unset=True,
                 exclude_none=True,
-                exclude={"components"},
+                exclude={
+                    "components",
+                    "raw_api",
+                },
             )
         return self.json(
             by_alias=True,
@@ -42,7 +45,10 @@ class CleanModel(pydantic.BaseModel):
                 by_alias=True,
                 exclude_unset=True,
                 exclude_none=True,
-                exclude={"components"},
+                exclude={
+                    "components",
+                    "raw_api",
+                },
             )
         return self.dict(
             by_alias=True,
