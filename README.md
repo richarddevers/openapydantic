@@ -82,7 +82,7 @@ api = asyncio.run(
 # Here ,'api' is an OpenApi302 object, event if you send an 3.0.1 spec.
 
 print(api.openapi)
->> 3.0.1 # version in the spec
+>> 3.0.1 # version in the spec file
 print(api.__version__)
 >> 3.0.2 # openapi version supported for the object class
 ```
@@ -217,7 +217,7 @@ api = asyncio.run(
 )
 
 print(api.raw_api)
-> {'openapi': '3.0.2', 'info': {'version': '1.0.0', 'title': 'Example'}, 'paths': {'/user': {'get': {'summary': 'Get user', 'responses': {'200': {'description': 'successful operation', 'content': {'application/json': {'schema': {'$ref': '#/components/schemas/User'}}}}}}}}, 'components': {'schemas': {'User': {'type': 'object', 'properties': {'id': {'type': 'integer', 'format': 'int64'}, 'name': {'type': 'string', 'example': 'John Doe'}}}}}}
+>> {'openapi': '3.0.2', 'info': {'version': '1.0.0', 'title': 'Example'}, 'paths': {'/user': {'get': {'summary': 'Get user', 'responses': {'200': {'description': 'successful operation', 'content': {'application/json': {'schema': {'$ref': '#/components/schemas/User'}}}}}}}}, 'components': {'schemas': {'User': {'type': 'object', 'properties': {'id': {'type': 'integer', 'format': 'int64'}, 'name': {'type': 'string', 'example': 'John Doe'}}}}}}
 ```
 
 You can export your data as json string or as python dict using specific methods:
@@ -234,7 +234,7 @@ api = asyncio.run(
 )
 
 print(api.as_clean_json())
-> {"openapi": "3.0.2", "info": {"title": "Example", "version": "1.0.0"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}}}}}
+>> {"openapi": "3.0.2", "info": {"title": "Example", "version": "1.0.0"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}}}}}
 
 
 print(api.as_clean_dict())
@@ -258,8 +258,13 @@ api = asyncio.run(
     ),
 )
 
-print(api.as_clean_json(exclude_components=False))
-> {"components": {"schemas": {"User": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}, "openapi": "3.0.2", "info": {"title": "Example", "version": "1.0.0"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}}}}, "raw_api": {"openapi": "3.0.2", "info": {"version": "1.0.0", "title": "Example"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/User"}}}}}}}}, "components": {"schemas": {"User": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}
+print(
+    api.as_clean_json(
+        exclude_components=False,
+    ),
+)
+
+>> {"components": {"schemas": {"User": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}, "openapi": "3.0.2", "info": {"title": "Example", "version": "1.0.0"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}}}}, "raw_api": {"openapi": "3.0.2", "info": {"version": "1.0.0", "title": "Example"}, "paths": {"/user": {"get": {"summary": "Get user", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/User"}}}}}}}}, "components": {"schemas": {"User": {"type": "object", "properties": {"id": {"type": "integer", "format": "int64"}, "name": {"type": "string", "example": "John Doe"}}}}}}}
 
 ```
 
