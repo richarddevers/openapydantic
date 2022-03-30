@@ -72,7 +72,7 @@ async def test_parse_api_valid_spec_extension(
     raw_api = fixture_loader.load_yaml("x-extended.yaml")
 
     api = openapydantic.OpenApi302(**raw_api)
-    print(api.as_clean_json())
+    # print(api.as_clean_json())
 
 
 # @pytest.mark.asyncio
@@ -108,7 +108,7 @@ async def test_parse_api_oneshot() -> None:
         "/workspaces/openapydantic/tests/unit/v3.0.0/fixture/ok/iot.yaml"
     )
     api = openapydantic.OpenApi302(**raw_api)
-    print(api.as_clean_json())
+    # print(api.as_clean_json())
 
 
 @pytest.mark.asyncio
@@ -118,7 +118,7 @@ async def test_components_1() -> None:
     )
 
     api = openapydantic.OpenApi302(**raw_api)
-    print(api.as_clean_json())
+    # print(api.as_clean_json())
 
 
 @pytest.mark.asyncio
@@ -128,7 +128,7 @@ async def test_components_2() -> None:
     )
 
     api = openapydantic.OpenApi302(**raw_api)
-    print(api.as_clean_json())
+    # print(api.as_clean_json())
 
 
 @pytest.mark.asyncio
@@ -138,4 +138,4 @@ async def test_components_3() -> None:
     )
 
     api = openapydantic.OpenApi302(**raw_api)
-    print(api.as_clean_json())
+    # print(api.as_clean_json())

@@ -75,13 +75,18 @@ class RefModel(pydantic.BaseModel):
         values: t.Dict[str, str],
     ) -> t.Dict[str, t.Any]:
         ref = values.get("$ref")
+        # print("====== VALIDATE ROOT ======")
+        # print(f"ref:{ref}")
         if ref:
             # load reference from ComponentsParser
             ref_type, ref_key = ComponentsParser.get_ref_data(ref)
+            # print(f"ref_type:{ref_type.name}")
+            # print(f"ref_key:{ref_key}")
             ref_found: t.Dict[str, t.Any] = ComponentsParser.without_ref[
                 ref_type.name
             ].get(ref_key)
 
+            # print(f"ref_found:{ref_found}")
             if not ref_found:
                 raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
@@ -94,7 +99,7 @@ class RefModel(pydantic.BaseModel):
     #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
     #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
     #     for attr in clean_extra_attr:
-    #         breakpoint()
+    #         #breakpoint()
     #         if not attr.startswith("x-"):
     #             raise ValueError(
     #                 f"Schema extension:{attr} must be conform to openapi "
@@ -593,6 +598,7 @@ class ComponentsParser:
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
     raw_api = {}
+    consolidate_count = 0
 
     @classmethod
     def reset(cls):
@@ -683,39 +689,68 @@ class ComponentsParser:
                 component_type=component_type,
             )
 
+    @staticmethod
+    def _get_component_object(
+        component_type: ComponentType,
+        value: t.Dict[str, t.Any],
+    ) -> t.Dict[str, t.Any]:
+        if component_type == ComponentType.schemas:
+            component = Schema(**value)
+        elif component_type == ComponentType.headers:
+            component = Header(**value)
+        elif component_type == ComponentType.responses:
+            component = Response(**value)
+        elif component_type == ComponentType.parameters:
+            component = Parameter(**value)
+        elif component_type == ComponentType.examples:
+            component = Example(**value)
+        elif component_type == ComponentType.request_bodies:
+            component = RequestBody(**value)
+        elif component_type == ComponentType.links:
+            component = Link(**value)
+        elif component_type == ComponentType.callbacks:
+            component = PathItem(**value)
+
+        return component.as_clean_dict()  # type: ignore
+
     @classmethod
     def _consolidate_components(
         cls,
         component_type: ComponentType,
     ) -> None:
+        cls.consolidate_count = cls.consolidate_count + 1
         component_dict = {}
-        component_key = component_type.name
-        with_ref_copy = copy.deepcopy(cls.with_ref[component_key])
-        # print(len(cls.with_ref))
-        # print(cls.with_ref)
+        with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
+        # print(f"INFO NEW CONSILDATE")
+        # print(f"with_ref remaining:{len(with_ref_copy)}")
+        # print(f"remaining:{[k for k in with_ref_copy]}")
+        # breakpoint()
         for key, value in with_ref_copy.items():
             cls.ref_find = False
+            # print(f"INFO:{key}:{value}")
 
-            if component_type == ComponentType.schemas:
-                component = Schema(**value)
-            elif component_type == ComponentType.request_bodies:
-                component = RequestBody(**value)
-
-            component_dict = component.as_clean_dict()  # type: ignore
+            component_dict = ComponentsParser._get_component_object(
+                component_type=component_type,
+                value=value,
+            )
             cls._search_component_for_ref(
                 key=key,
-                value=component_dict,
+                value=component_dict,  # type: ignore
                 component_type=component_type,
             )
+            # print(cls.ref_find)
+            # print(key)
 
             if cls.ref_find:
-                cls.with_ref[component_key][key] = component_dict
-                cls._consolidate_components(component_type=component_type)
+                # print(f"BAD INFO:still ref in:{key}:{component_dict}")
+                cls.with_ref[component_type.name][key] = component_dict
             else:
-                cls.without_ref[component_key][key] = component_dict
-                del cls.with_ref[component_key][key]
-                if not len(cls.with_ref):
-                    break
+                # print(f"GOOD INFO:adding without ref:{key}:{component_dict}")
+                cls.without_ref[component_type.name][key] = component_dict
+                del cls.with_ref[component_type.name][key]
+
+        if len(cls.with_ref[component_type.name]):
+            cls._consolidate_components(component_type=component_type)
 
     @classmethod
     def parse(
@@ -796,6 +831,8 @@ class ComponentsParser:
             cls._consolidate_components(component_type=ComponentType.links)
         if callbacks:
             cls._consolidate_components(component_type=ComponentType.callbacks)
+
+        print(f"Consolidate count:{cls.consolidate_count}")
 
 
 class OpenApi302(OpenApi, BaseModelForbid):
