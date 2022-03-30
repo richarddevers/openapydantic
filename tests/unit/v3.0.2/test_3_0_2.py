@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 import openapydantic
@@ -78,7 +80,7 @@ async def test_parse_api_ref_invalid_path_format(
 
 
 @pytest.mark.asyncio
-async def test_components_interpolation_1(
+async def test_reference_interpolation_1(
     fixture_loader: FixtureLoader,
 ) -> None:
     raw_api = fixture_loader.load_yaml(filename="components_1.yaml")
@@ -86,11 +88,11 @@ async def test_components_interpolation_1(
 
     api = load_api(raw_api=raw_api)
 
-    assert expected == api.as_clean_dict()
+    assert expected == json.loads(api.as_clean_json())
 
 
 @pytest.mark.asyncio
-async def test_components_interpolation_2(
+async def test_reference_interpolation_2(
     fixture_loader: FixtureLoader,
 ) -> None:
     raw_api = fixture_loader.load_yaml(filename="components_2.yaml")
@@ -98,11 +100,11 @@ async def test_components_interpolation_2(
 
     api = load_api(raw_api=raw_api)
 
-    assert expected == api.as_clean_dict()
+    assert expected == json.loads(api.as_clean_json())
 
 
 @pytest.mark.asyncio
-async def test_components_interpolation_3(
+async def test_reference_interpolation_3(
     fixture_loader: FixtureLoader,
 ) -> None:
     raw_api = fixture_loader.load_yaml(filename="components_3.yaml")
@@ -110,11 +112,11 @@ async def test_components_interpolation_3(
 
     api = load_api(raw_api=raw_api)
 
-    assert expected == api.as_clean_dict()
+    assert expected == json.loads(api.as_clean_json())
 
 
 @pytest.mark.asyncio
-async def test_components_interpolation_4(
+async def test_reference_interpolation_4(
     fixture_loader: FixtureLoader,
 ) -> None:
     raw_api = fixture_loader.load_yaml(filename="components_4.yaml")
@@ -122,4 +124,4 @@ async def test_components_interpolation_4(
 
     api = load_api(raw_api=raw_api)
 
-    assert expected == api.as_clean_dict()
+    assert expected == json.loads(api.as_clean_json())

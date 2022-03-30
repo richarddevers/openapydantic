@@ -75,13 +75,11 @@ class RefModel(CleanModel):
 class BaseModelForbid(RefModel):
     class Config:
         extra = "forbid"
-        use_enum_values = True
 
 
 class BaseModelAllow(RefModel):
     class Config:
         extra = "allow"
-        use_enum_values = True
 
 
 class JsonType(enum.Enum):
@@ -561,7 +559,6 @@ class ComponentsResolver:
     with_ref: t.Dict[str, t.Any] = {}
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
-    raw_api = {}
     consolidate_count = 0
     find_ref_count = 0
 
@@ -570,7 +567,6 @@ class ComponentsResolver:
         cls.with_ref = {}
         cls.without_ref = {}
         cls.ref_find = False
-        cls.raw_api = {}
 
         cls.with_ref[ComponentType.schemas.name] = {}
         cls.with_ref[ComponentType.headers.name] = {}
@@ -756,12 +752,25 @@ class OpenApi302(OpenApi, CleanModel):
         None,
         alias="externalDocs",
     )
+    _raw_api: t.Dict[str, t.Any]
 
     class Config:
         extra = "forbid"
-        use_enum_values = True
 
 
-def load_api(raw_api: t.Dict[str, t.Any]) -> OpenApi302:
+def load_api(
+    *,
+    raw_api: t.Dict[str, t.Any],
+    clean_memory: bool = True,
+) -> OpenApi302:
     ComponentsResolver.resolve(raw_api=raw_api)
-    return OpenApi302(**raw_api)
+
+    data: t.Dict[str, t.Any] = {
+        **raw_api,
+        # "_raw_api": raw_api,
+    }
+    # print(data)
+    api = OpenApi302(**data)
+    if clean_memory:
+        ComponentsResolver.init()
+    return api
