@@ -26,12 +26,7 @@ class ComponentType(enum.Enum):
     callbacks = "callbacks"
 
 
-class RefModel(pydantic.BaseModel):
-    ref: t.Optional[str] = Field(
-        None,
-        alias="$ref",
-    )
-
+class CleanModel(pydantic.BaseModel):
     def as_clean_json(
         self,
         exclude_components: bool = True,
@@ -66,6 +61,20 @@ class RefModel(pydantic.BaseModel):
             exclude_none=True,
         )
 
+
+class RefModel(CleanModel):
+    ref: t.Optional[str] = Field(
+        None,
+        alias="$ref",
+    )
+
+    @staticmethod
+    def _get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
+        ref_split = ref.split("/")  # format #/components/schemas/Pet
+        ref_type = ComponentType(ref_split[2])
+        ref_key = ref_split[-1]
+        return ref_type, ref_key
+
     @pydantic.root_validator(
         pre=True,
         allow_reuse=True,
@@ -79,7 +88,7 @@ class RefModel(pydantic.BaseModel):
         # print(f"ref:{ref}")
         if ref:
             # load reference from ComponentsParser
-            ref_type, ref_key = ComponentsParser.get_ref_data(ref)
+            ref_type, ref_key = cls._get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
             # print(f"ref_key:{ref_key}")
             ref_found: t.Dict[str, t.Any] = ComponentsParser.without_ref[
@@ -99,7 +108,6 @@ class RefModel(pydantic.BaseModel):
     #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
     #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
     #     for attr in clean_extra_attr:
-    #         #breakpoint()
     #         if not attr.startswith("x-"):
     #             raise ValueError(
     #                 f"Schema extension:{attr} must be conform to openapi "
@@ -599,13 +607,15 @@ class ComponentsParser:
     ref_find = False
     raw_api = {}
     consolidate_count = 0
+    find_ref_count = 0
 
     @classmethod
-    def reset(cls):
+    def init(cls):
         cls.with_ref = {}
         cls.without_ref = {}
         cls.ref_find = False
         cls.raw_api = {}
+
         cls.with_ref[ComponentType.schemas.name] = {}
         cls.with_ref[ComponentType.headers.name] = {}
         cls.with_ref[ComponentType.responses.name] = {}
@@ -625,13 +635,6 @@ class ComponentsParser:
         cls.without_ref[ComponentType.callbacks.name] = {}
 
     @staticmethod
-    def get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
-        ref_split = ref.split("/")  # format #/components/schemas/Pet
-        ref_type = ComponentType(ref_split[2])
-        ref_key = ref_split[-1]
-        return ref_type, ref_key
-
-    @staticmethod
     def _validate_ref(ref: str) -> None:
         if ".yaml" in ref or ".json" in ref:
             raise NotImplementedError("File reference not implemented")
@@ -644,6 +647,10 @@ class ComponentsParser:
         *,
         obj: t.Any,
     ):
+        cls.find_ref_count = cls.find_ref_count + 1
+        if cls._find_ref:
+            return
+
         if isinstance(obj, list):
             for elt in obj:  # type: ignore
                 cls._find_ref(obj=elt)
@@ -692,26 +699,26 @@ class ComponentsParser:
     @staticmethod
     def _get_component_object(
         component_type: ComponentType,
-        value: t.Dict[str, t.Any],
+        values: t.Dict[str, t.Any],
     ) -> t.Dict[str, t.Any]:
         if component_type == ComponentType.schemas:
-            component = Schema(**value)
+            component = Schema(**values)
         elif component_type == ComponentType.headers:
-            component = Header(**value)
+            component = Header(**values)
         elif component_type == ComponentType.responses:
-            component = Response(**value)
+            component = Response(**values)
         elif component_type == ComponentType.parameters:
-            component = Parameter(**value)
+            component = Parameter(**values)
         elif component_type == ComponentType.examples:
-            component = Example(**value)
+            component = Example(**values)
         elif component_type == ComponentType.request_bodies:
-            component = RequestBody(**value)
+            component = RequestBody(**values)
         elif component_type == ComponentType.links:
-            component = Link(**value)
+            component = Link(**values)
         elif component_type == ComponentType.callbacks:
-            component = PathItem(**value)
+            component = PathItem(**values)
 
-        return component.as_clean_dict()  # type: ignore
+        return component.as_clean_dict()
 
     @classmethod
     def _consolidate_components(
@@ -721,17 +728,16 @@ class ComponentsParser:
         cls.consolidate_count = cls.consolidate_count + 1
         component_dict = {}
         with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
-        # print(f"INFO NEW CONSILDATE")
+        # print(f"INFO NEW CONSOLIDATE")
         # print(f"with_ref remaining:{len(with_ref_copy)}")
         # print(f"remaining:{[k for k in with_ref_copy]}")
-        # breakpoint()
-        for key, value in with_ref_copy.items():
+        for key, values in with_ref_copy.items():
             cls.ref_find = False
-            # print(f"INFO:{key}:{value}")
+            # print(f"INFO:{key}:{values}")
 
             component_dict = ComponentsParser._get_component_object(
                 component_type=component_type,
-                value=value,
+                values=values,
             )
             cls._search_component_for_ref(
                 key=key,
@@ -758,84 +764,30 @@ class ComponentsParser:
         *,
         raw_api: t.Dict[str, t.Any],
     ):
-        cls.reset()
+        cls.init()
 
         components = raw_api.get("components")
         if not components:
             print("No components in this api")
             return
 
-        schemas = components.get(ComponentType.schemas.value)
-        headers = components.get(ComponentType.headers.value)
-        responses = components.get(ComponentType.responses.value)
-        parameters = components.get(ComponentType.parameters.value)
-        examples = components.get(ComponentType.examples.value)
-        request_bodies = components.get(ComponentType.request_bodies.value)
-        links = components.get(ComponentType.links.value)
-        callbacks = components.get(ComponentType.callbacks.value)
+        for elt in ComponentType:
+            component = components.get(elt.value)
+            if component:
+                cls._search_components_for_ref(
+                    components=component,
+                    component_type=elt,
+                )
 
-        if schemas:
-            cls._search_components_for_ref(
-                components=schemas,
-                component_type=ComponentType.schemas,
-            )
-        if headers:
-            cls._search_components_for_ref(
-                components=headers,
-                component_type=ComponentType.headers,
-            )
-        if responses:
-            cls._search_components_for_ref(
-                components=responses,
-                component_type=ComponentType.responses,
-            )
-        if parameters:
-            cls._search_components_for_ref(
-                components=parameters,
-                component_type=ComponentType.parameters,
-            )
-        if examples:
-            cls._search_components_for_ref(
-                components=examples,
-                component_type=ComponentType.examples,
-            )
-        if request_bodies:
-            cls._search_components_for_ref(
-                components=request_bodies,
-                component_type=ComponentType.request_bodies,
-            )
-        if links:
-            cls._search_components_for_ref(
-                components=links,
-                component_type=ComponentType.links,
-            )
-        if callbacks:
-            cls._search_components_for_ref(
-                components=callbacks,
-                component_type=ComponentType.callbacks,
-            )
+        for elt in ComponentType:
+            component = components.get(elt.value)
+            if component:
+                cls._consolidate_components(component_type=elt)
 
-        if schemas:
-            cls._consolidate_components(component_type=ComponentType.schemas)
-        if headers:
-            cls._consolidate_components(component_type=ComponentType.headers)
-        if responses:
-            cls._consolidate_components(component_type=ComponentType.responses)
-        if parameters:
-            cls._consolidate_components(component_type=ComponentType.parameters)
-        if examples:
-            cls._consolidate_components(component_type=ComponentType.examples)
-        if request_bodies:
-            cls._consolidate_components(component_type=ComponentType.request_bodies)
-        if links:
-            cls._consolidate_components(component_type=ComponentType.links)
-        if callbacks:
-            cls._consolidate_components(component_type=ComponentType.callbacks)
-
-        print(f"Consolidate count:{cls.consolidate_count}")
+        print(cls.find_ref_count)
 
 
-class OpenApi302(OpenApi, BaseModelForbid):
+class OpenApi302(OpenApi, CleanModel):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
     components: t.Optional[Components]
     openapi: OpenApiVersion
@@ -852,3 +804,7 @@ class OpenApi302(OpenApi, BaseModelForbid):
     def __init__(self, **data: t.Any) -> None:
         ComponentsParser.parse(raw_api=data)
         super().__init__(**data)
+
+    class Config:
+        extra = "forbid"
+        use_enum_values = True

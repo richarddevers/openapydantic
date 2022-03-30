@@ -1,10 +1,12 @@
 import pytest
 
 import openapydantic
-from tests.unit.conftest import FixtureLoader
-from tests.unit.conftest import FixturesVersion
-from tests.unit.conftest import SpecVersion
-from tests.unit.conftest import list_specific_fixtures_version
+from tests.unit import conftest
+
+list_specific_fixtures_version = conftest.list_specific_fixtures_version
+SpecVersion = conftest.SpecVersion
+FixtureLoader = conftest.FixtureLoader
+FixturesVersion = conftest.FixturesVersion
 
 OpenApi302 = openapydantic.OpenApi302
 ComponentsParser = openapydantic.openapi_302.ComponentsParser
@@ -45,14 +47,6 @@ async def test_load_api_ok(
 ) -> None:
     raw_api = await openapydantic.load_spec(file_path)
     openapydantic.OpenApi302(**raw_api)
-    # assert raw_api == json.loads(
-    #     api.json(
-    #         by_alias=True,
-    #         exclude_defaults=True,
-    #         exclude_none=True,
-    #         exclude_unset=True,
-    #     )
-    # )
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ko)
@@ -63,25 +57,6 @@ async def test_parse_api_ko(
     with pytest.raises(Exception):
         raw_api = await openapydantic.load_spec(file_path)
         openapydantic.OpenApi302(**raw_api)
-
-
-@pytest.mark.asyncio
-async def test_parse_api_valid_spec_extension(
-    fixture_loader: FixtureLoader,
-) -> None:
-    raw_api = fixture_loader.load_yaml("x-extended.yaml")
-
-    api = openapydantic.OpenApi302(**raw_api)
-    # print(api.as_clean_json())
-
-
-# @pytest.mark.asyncio
-# async def test_parse_api_invalid_spec_extended(
-#     fixture_loader: FixtureLoader,
-# ) -> None:
-#     with pytest.raises(Exception):
-#         raw_api = fixture_loader.load_yaml("y-extended.yaml")
-#         openapydantic.OpenApi302(**raw_api)
 
 
 @pytest.mark.asyncio
@@ -103,39 +78,48 @@ async def test_parse_api_ref_invalid_path_format(
 
 
 @pytest.mark.asyncio
-async def test_parse_api_oneshot() -> None:
-    raw_api = await openapydantic.load_spec(
-        "/workspaces/openapydantic/tests/unit/v3.0.0/fixture/ok/iot.yaml"
-    )
+async def test_components_interpolation_1(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename="components_1.yaml")
+    expected = fixture_loader.load_json(filename="components_1.json")
+
     api = openapydantic.OpenApi302(**raw_api)
-    # print(api.as_clean_json())
+
+    assert expected == api.as_clean_dict()
 
 
 @pytest.mark.asyncio
-async def test_components_1() -> None:
-    raw_api = await openapydantic.load_spec(
-        "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_1.yaml"
-    )
+async def test_components_interpolation_2(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename="components_2.yaml")
+    expected = fixture_loader.load_json(filename="components_2.json")
 
     api = openapydantic.OpenApi302(**raw_api)
-    # print(api.as_clean_json())
+
+    assert expected == api.as_clean_dict()
 
 
 @pytest.mark.asyncio
-async def test_components_2() -> None:
-    raw_api = await openapydantic.load_spec(
-        "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_2.yaml"
-    )
+async def test_components_interpolation_3(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename="components_3.yaml")
+    expected = fixture_loader.load_json(filename="components_3.json")
 
     api = openapydantic.OpenApi302(**raw_api)
-    # print(api.as_clean_json())
+
+    assert expected == api.as_clean_dict()
 
 
 @pytest.mark.asyncio
-async def test_components_3() -> None:
-    raw_api = await openapydantic.load_spec(
-        "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/components_3.yaml"
-    )
+async def test_components_interpolation_4(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename="components_4.yaml")
+    expected = fixture_loader.load_json(filename="components_4.json")
 
     api = openapydantic.OpenApi302(**raw_api)
-    # print(api.as_clean_json())
+
+    assert expected == api.as_clean_dict()
