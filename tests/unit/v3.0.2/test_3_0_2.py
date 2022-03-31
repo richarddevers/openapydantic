@@ -1,12 +1,18 @@
+import json
+
 import pytest
 
 import openapydantic
-from tests.unit.conftest import FixtureLoader
-from tests.unit.conftest import FixturesVersion
-from tests.unit.conftest import SpecVersion
-from tests.unit.conftest import list_specific_fixtures_version
+from tests.unit import conftest
 
-OpenApi302 = openapydantic.OpenApi302
+list_specific_fixtures_version = conftest.list_specific_fixtures_version
+SpecVersion = conftest.SpecVersion
+FixtureLoader = conftest.FixtureLoader
+FixturesVersion = conftest.FixturesVersion
+OpenApiVersion = openapydantic.OpenApiVersion
+
+load_api = openapydantic.load_api
+load_api_302 = openapydantic.openapi_302.load_api
 
 fixtures_v3_0_0 = list_specific_fixtures_version(version=SpecVersion.v3_0_0)
 fixtures_v3_0_1 = list_specific_fixtures_version(version=SpecVersion.v3_0_1)
@@ -20,21 +26,25 @@ retro_fixture = FixturesVersion(
 
 @pytest.mark.parametrize("file_path", retro_fixture.ok)
 @pytest.mark.asyncio
-async def test_parse_retro_api_ok(
+async def test_retrocompatibility_ok(
     file_path: str,
 ) -> None:
-    raw_api = await openapydantic.load_spec(file_path)
-    openapydantic.OpenApi302(**raw_api)
+    await load_api(
+        file_path=file_path,
+        version=OpenApiVersion.v3_0_2,
+    )
 
 
 @pytest.mark.parametrize("file_path", retro_fixture.ko)
 @pytest.mark.asyncio
-async def test_parse_retro_api_ko(
+async def test_retrocompatibility_ko(
     file_path: str,
 ) -> None:
     with pytest.raises(Exception):
-        raw_api = await openapydantic.load_spec(file_path)
-        openapydantic.OpenApi302(**raw_api)
+        await load_api(
+            file_path=file_path,
+            version=OpenApiVersion.v3_0_2,
+        )
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ok)
@@ -42,16 +52,7 @@ async def test_parse_retro_api_ko(
 async def test_load_api_ok(
     file_path: str,
 ) -> None:
-    raw_api = await openapydantic.load_spec(file_path)
-    openapydantic.OpenApi302(**raw_api)
-    # assert raw_api == json.loads(
-    #     api.json(
-    #         by_alias=True,
-    #         exclude_defaults=True,
-    #         exclude_none=True,
-    #         exclude_unset=True,
-    #     )
-    # )
+    await load_api(file_path=file_path)
 
 
 @pytest.mark.parametrize("file_path", fixtures_v3_0_2.ko)
@@ -60,26 +61,7 @@ async def test_parse_api_ko(
     file_path: str,
 ) -> None:
     with pytest.raises(Exception):
-        raw_api = await openapydantic.load_spec(file_path)
-        openapydantic.OpenApi302(**raw_api)
-
-
-@pytest.mark.asyncio
-async def test_parse_api_valid_spec_extension(
-    fixture_loader: FixtureLoader,
-) -> None:
-    raw_api = fixture_loader.load_yaml("x-extended.yaml")
-
-    openapydantic.OpenApi302(**raw_api)
-
-
-@pytest.mark.asyncio
-async def test_parse_api_invalid_spec_extended(
-    fixture_loader: FixtureLoader,
-) -> None:
-    with pytest.raises(Exception):
-        raw_api = fixture_loader.load_yaml("y-extended.yaml")
-        openapydantic.OpenApi302(**raw_api)
+        await load_api(file_path=file_path)
 
 
 @pytest.mark.asyncio
@@ -88,7 +70,7 @@ async def test_parse_api_ref_unmanaged_file_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-unmanaged-file-format.yaml")
-        openapydantic.OpenApi302(**raw_api)
+        load_api_302(raw_api=raw_api)
 
 
 @pytest.mark.asyncio
@@ -97,12 +79,20 @@ async def test_parse_api_ref_invalid_path_format(
 ) -> None:
     with pytest.raises(Exception):
         raw_api = fixture_loader.load_yaml("ref-error-invalid-path-format.yaml")
-        openapydantic.OpenApi302(**raw_api)
+        load_api_302(raw_api=raw_api)
 
 
-# @pytest.mark.asyncio
-# async def test_parse_api_oneshot() -> None:
-#     raw_api = await openapydantic.load_spec(
-#         "/workspaces/openapydantic/tests/unit/v3.0.2/fixture/ok/petstore.yaml"
-#     )
-#     openapydantic.OpenApi302(**raw_api)
+@pytest.mark.parametrize(
+    "api_index",
+    [(1), (2), (3), (4)],
+)
+@pytest.mark.asyncio
+async def test_reference_interpolation_x(
+    fixture_loader: FixtureLoader, api_index: int
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename=f"components_{api_index}.yaml")
+    expected = fixture_loader.load_json(filename=f"components_{api_index}.json")
+
+    api = load_api_302(raw_api=raw_api)
+
+    assert expected == json.loads(api.as_clean_json())

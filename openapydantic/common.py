@@ -1,6 +1,64 @@
 import enum
 import typing as t
 
+import pydantic
+
+
+class ComponentType(enum.Enum):
+    schemas = "schemas"
+    headers = "headers"
+    responses = "responses"
+    parameters = "parameters"
+    examples = "examples"
+    request_bodies = "requestBodies"
+    links = "links"
+    callbacks = "callbacks"
+
+
+class OpenApiBaseModel(pydantic.BaseModel):
+    def as_clean_json(
+        self,
+        *,
+        exclude_components: bool = True,
+        exclude_raw_api: bool = True,
+    ) -> str:
+        exclude: t.Set[str] = set()
+
+        if exclude_components:
+            exclude.add("components")
+
+        if exclude_raw_api:
+            exclude.add("raw_api")
+
+        return self.json(
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+            exclude=exclude,
+        )
+
+    def as_clean_dict(
+        self,
+        *,
+        exclude_components: bool = True,
+        exclude_raw_api: bool = True,
+    ) -> t.Dict[str, t.Any]:
+        exclude: t.Set[str] = set()
+
+        if exclude_components:
+            exclude.add("components")
+
+        if exclude_raw_api:
+            exclude.add("raw_api")
+
+        return self.dict(
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+            exclude=exclude,
+        )
+
+
 # could be:
 # -------
 # import http
@@ -97,7 +155,3 @@ class OpenApiVersion(enum.Enum):
     v3_0_2 = "3.0.2"
     # v3_0_3 = "3.0.3"
     # v3_1_0 = "3.1.0"
-
-
-class OpenApi:
-    version: t.ClassVar[OpenApiVersion]

@@ -1,49 +1,249 @@
+import copy
 import enum
-import functools
 import typing as t
 
 import pydantic
-from inflection import underscore
 
-from openapydantic.common import HTTPStatusCode
-from openapydantic.common import MediaType
-from openapydantic.common import OpenApi
-from openapydantic.common import OpenApiVersion
+import openapydantic
 
 Field = pydantic.Field
 
-# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md
-
-Enum = enum.Enum
-
-
-class BaseModel(pydantic.BaseModel):
-    class Config:
-        extra = "forbid"
-        # extra = "allow"
-        # extra = "ignore"
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
+ComponentType = openapydantic.common.ComponentType
+HTTPStatusCode = openapydantic.common.HTTPStatusCode
+MediaType = openapydantic.common.MediaType
 
 
-class BaseModelSpecificationExtension(pydantic.BaseModel):
-    class Config:
-        # extra = "forbid"
-        extra = "allow"
-        # extra = "ignore"
+class ComponentsResolver:
+    with_ref: t.Dict[str, t.Any] = {}
+    without_ref: t.Dict[str, t.Any] = {}
+    ref_find = False
+    consolidate_count = 0
+    find_ref_count = 0
 
-    @pydantic.root_validator(allow_reuse=True)
-    def validate_spec_extension(
+    @classmethod
+    def init(cls):
+        cls.with_ref = {}
+        cls.without_ref = {}
+        cls.ref_find = False
+
+        for elt in ComponentType:
+            cls.with_ref[elt.name] = {}
+            cls.without_ref[elt.name] = {}
+
+    @staticmethod
+    def _validate_ref(ref: str) -> None:
+        if ".yaml" in ref or ".json" in ref:
+            raise NotImplementedError("File reference not implemented")
+        if not ref.startswith("#/"):
+            raise ValueError(f"reference {ref} has invalid format")
+
+    @classmethod
+    def _find_ref(
+        cls,
+        *,
+        obj: t.Any,
+    ):
+        cls.find_ref_count = cls.find_ref_count + 1
+        if cls._find_ref:
+            return
+
+        if isinstance(obj, list):
+            for elt in obj:  # type: ignore
+                cls._find_ref(obj=elt)
+
+        if isinstance(obj, dict):
+            ref = obj.get("$ref")  # type: ignore
+            if ref:
+                cls._validate_ref(ref=ref)  # type: ignore
+                cls.ref_find = True
+
+            for key in obj:  # type: ignore
+                cls._find_ref(obj=obj.get(key))  # type: ignore
+
+    @classmethod
+    def _search_component_for_ref(
+        cls,
+        *,
+        key: str,
+        value: t.Dict[str, t.Any],
+        component_type: ComponentType,
+    ):
+        cls.ref_find = False
+        cls._find_ref(
+            obj=value,
+        )
+
+        if cls.ref_find:
+            cls.with_ref[component_type.name][key] = value
+        else:
+            cls.without_ref[component_type.name][key] = value
+
+    @classmethod
+    def _search_components_for_ref(
+        cls,
+        *,
+        components: t.Dict[str, t.Any],
+        component_type: ComponentType,
+    ):
+        for key, value in components.items():
+            cls._search_component_for_ref(
+                key=key,
+                value=value,
+                component_type=component_type,
+            )
+
+    @staticmethod
+    def _get_component_object(
+        component_type: ComponentType,
+        values: t.Dict[str, t.Any],
+    ) -> t.Dict[str, t.Any]:
+        if component_type == ComponentType.schemas:
+            component = Schema(**values)
+        elif component_type == ComponentType.headers:
+            component = Header(**values)
+        elif component_type == ComponentType.responses:
+            component = Response(**values)
+        elif component_type == ComponentType.parameters:
+            component = Parameter(**values)
+        elif component_type == ComponentType.examples:
+            component = Example(**values)
+        elif component_type == ComponentType.request_bodies:
+            component = RequestBody(**values)
+        elif component_type == ComponentType.links:
+            component = Link(**values)
+        elif component_type == ComponentType.callbacks:
+            component = PathItem(**values)
+
+        return component.as_clean_dict()
+
+    @classmethod
+    def _consolidate_components(
+        cls,
+        component_type: ComponentType,
+    ) -> None:
+        cls.consolidate_count = cls.consolidate_count + 1
+        component_dict = {}
+        with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
+        # print(f"INFO NEW CONSOLIDATE")
+        # print(f"with_ref remaining:{len(with_ref_copy)}")
+        # print(f"remaining:{[k for k in with_ref_copy]}")
+        for key, values in with_ref_copy.items():
+            cls.ref_find = False
+            # print(f"INFO:{key}:{values}")
+
+            component_dict = ComponentsResolver._get_component_object(
+                component_type=component_type,
+                values=values,
+            )
+            cls._search_component_for_ref(
+                key=key,
+                value=component_dict,  # type: ignore
+                component_type=component_type,
+            )
+            # print(cls.ref_find)
+            # print(key)
+
+            if cls.ref_find:
+                # print(f"BAD INFO:still ref in:{key}:{component_dict}")
+                cls.with_ref[component_type.name][key] = component_dict
+            else:
+                # print(f"GOOD INFO:adding without ref:{key}:{component_dict}")
+                cls.without_ref[component_type.name][key] = component_dict
+                del cls.with_ref[component_type.name][key]
+
+        if len(cls.with_ref[component_type.name]):
+            cls._consolidate_components(component_type=component_type)
+
+    @classmethod
+    def resolve(
+        cls,
+        *,
+        raw_api: t.Dict[str, t.Any],
+    ):
+        cls.init()
+
+        components = raw_api.get("components")
+        if not components:
+            print("No components in this api")
+            return
+
+        for elt in ComponentType:
+            component = components.get(elt.value)
+            if component:
+                cls._search_components_for_ref(
+                    components=component,
+                    component_type=elt,
+                )
+
+        for elt in ComponentType:
+            component = components.get(elt.value)
+            if component:
+                cls._consolidate_components(component_type=elt)
+
+
+class RefModel(OpenApiBaseModel):
+    ref: t.Optional[str] = Field(
+        None,
+        alias="$ref",
+    )
+
+    @staticmethod
+    def _get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
+        ref_split = ref.split("/")  # format #/components/schemas/Pet
+        ref_type = ComponentType(ref_split[2])
+        ref_key = ref_split[-1]
+        return ref_type, ref_key
+
+    @pydantic.root_validator(
+        pre=True,
+        allow_reuse=True,
+    )
+    def validate_root(
         cls,
         values: t.Dict[str, str],
-    ) -> t.Dict[str, str]:
-        native_attr = set(cls.__fields__.keys())  # all class attr key
-        setted_attr = [k for k, v in values.items() if v]  # setted attr key
-        extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
-        for attr in extra_attr:
-            if not attr.startswith("x-"):
-                raise ValueError(
-                    "Schema extension must be conform to openapi spec extension(^x-)"
-                )
+    ) -> t.Dict[str, t.Any]:
+        ref = values.get("$ref")
+        # print("====== VALIDATE ROOT ======")
+        # print(f"ref:{ref}")
+        if ref:
+            # load reference from ComponentsResolver
+            ref_type, ref_key = cls._get_ref_data(ref)
+            # print(f"ref_type:{ref_type.name}")
+            # print(f"ref_key:{ref_key}")
+            ref_found: t.Dict[str, t.Any] = ComponentsResolver.without_ref[
+                ref_type.name
+            ].get(ref_key)
+
+            # print(f"ref_found:{ref_found}")
+            if not ref_found:
+                raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
+
+            return ref_found
         return values
+
+    #     # check spec extension:
+    #     native_attr = set(cls.__fields__.keys())  # all class attr key
+    #     setted_attr = [k for k, v in values.items() if v]  # setted attr key
+    #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
+    #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
+    #     for attr in clean_extra_attr:
+    #         if not attr.startswith("x-"):
+    #             raise ValueError(
+    #                 f"Schema extension:{attr} must be conform to openapi "
+    #                 f"specication (^x-)"
+    #             )
+    #     return values
+
+
+class BaseModelForbid(RefModel):
+    class Config:
+        extra = "forbid"
+
+
+class BaseModelAllow(RefModel):
+    class Config:
+        extra = "allow"
 
 
 class JsonType(enum.Enum):
@@ -61,24 +261,10 @@ class SecurityIn(enum.Enum):
     cookie = "cookie"
 
 
-class Reference(BaseModel):
-    ref: str = Field(
-        alias="$ref",
-    )
-
-    @pydantic.validator("ref")
-    def validate_reference(cls, v: str) -> str:
-        if ".yaml" in v or ".json" in v:
-            raise NotImplementedError("Field reference currently not implemented")
-        if not v.startswith("#/"):
-            raise ValueError(f"reference {v} has invalid format")
-        return v
-
-
 Discriminator = t.Mapping[str, t.Dict[str, str]]
 
 
-class XML(BaseModel):
+class XML(BaseModelForbid):
     name: t.Optional[str]
     namespace: t.Optional[pydantic.AnyUrl]
     prefix: t.Optional[str]
@@ -86,21 +272,18 @@ class XML(BaseModel):
     wrapped: t.Optional[bool]
 
 
-class ExternalDocs(BaseModel):
+class ExternalDocs(BaseModelForbid):
     description: t.Optional[str]
     url: t.Optional[pydantic.AnyUrl]
 
 
-SchemaRef = t.Union["Schema", Reference]
-
-
 SchemaUnion = t.Union[
-    SchemaRef,
-    t.Mapping[str, SchemaRef],
+    t.Mapping[str, "Schema"],
+    "Schema",
 ]
 
 
-class Schema(BaseModelSpecificationExtension):
+class Schema(BaseModelAllow):
     title: t.Optional[str]
     multiple_of: t.Optional[t.List[SchemaUnion]] = Field(
         None,
@@ -192,14 +375,14 @@ class Schema(BaseModelSpecificationExtension):
     deprecated: t.Optional[str]
 
 
-class Example(BaseModel):
+class Example(BaseModelForbid):
     summary: t.Optional[str]
     description: t.Optional[str]
     value: t.Any
     externalValue: t.Optional[pydantic.AnyUrl]
 
 
-class Header(BaseModel):
+class Header(BaseModelForbid):
     description: t.Optional[str]
     required: t.Optional[bool]
     deprecated: t.Optional[bool]
@@ -213,10 +396,10 @@ class Header(BaseModel):
     )
 
 
-HeadersUnion = t.Optional[t.Mapping[str, t.Union[Header, Reference]]]
+HeadersUnion = t.Optional[t.Mapping[str, Header]]
 
 
-class Encoding(BaseModel):
+class Encoding(BaseModelForbid):
     content_type: t.Optional[t.Union[str, MediaType]] = Field(
         None,
         alias="contentType",
@@ -236,36 +419,33 @@ class MediaTypeObject(pydantic.BaseModel):
         alias="schema",
     )
     example: t.Any
-    examples: t.Optional[t.Mapping[str, t.Union[Example, Reference]]]
-    encoding: t.Optional[t.Mapping[str, t.Union[Encoding, Reference]]]
+    examples: t.Optional[t.Mapping[str, Example]]
+    encoding: t.Optional[t.Mapping[str, Encoding]]
 
 
 MediaTypeMap = t.Mapping[MediaType, MediaTypeObject]
 
 
-class Response(BaseModel):
+class Response(BaseModelForbid):
     description: str
     content: t.Optional[MediaTypeMap]
     headers: HeadersUnion
-    links: t.Optional[t.Mapping[str, t.Union["Link", Reference]]]
+    links: t.Optional[t.Mapping[str, "Link"]]
 
 
-Responses = t.Mapping[HTTPStatusCode, t.Union[Response, Reference]]
-
-
-class RequestBody(BaseModel):
+class RequestBody(BaseModelForbid):
     description: t.Optional[str]
     required: t.Optional[bool]
-    content: MediaTypeMap
+    content: t.Optional[MediaTypeMap]
 
 
-class ServerVariables(BaseModel):
+class ServerVariables(BaseModelForbid):
     enum: t.Optional[t.List[str]]
     default: str
     description: t.Optional[str]
 
 
-class Server(BaseModelSpecificationExtension):
+class Server(BaseModelAllow):
     url: t.Optional[str]
     description: t.Optional[str]
     variables: t.Optional[t.Mapping[str, ServerVariables]]
@@ -274,7 +454,7 @@ class Server(BaseModelSpecificationExtension):
 SecurityRequirement = t.Mapping[str, t.List[str]]
 
 
-class Link(BaseModel):
+class Link(BaseModelForbid):
     operation_ref: t.Optional[str] = Field(
         None,
         alias="operationRef",
@@ -295,7 +475,7 @@ class Link(BaseModel):
 Response.update_forward_refs()
 
 
-class Parameter(BaseModel):
+class Parameter(BaseModelForbid):
     # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#parameterObject
     name: str
     in_: str = Field(
@@ -319,13 +499,13 @@ class Parameter(BaseModel):
         alias="allowReserved",
     )
     example: t.Any
-    examples: t.Optional[t.Union[Example, Reference]]
+    examples: t.Optional[Example]
 
 
 Callback = t.Mapping[str, "PathItem"]
 
 
-class Operation(BaseModelSpecificationExtension):
+class Operation(BaseModelAllow):
     tags: t.Optional[t.List[str]]
     summary: t.Optional[str]
     description: t.Optional[str]
@@ -337,28 +517,19 @@ class Operation(BaseModelSpecificationExtension):
         None,
         alias="operationId",
     )
-    responses: Responses
-    parameters: t.Optional[t.List[t.Union[Parameter, Reference]]]
-    request_body: t.Optional[t.Union[RequestBody, Reference]] = Field(
+    responses: t.Mapping[HTTPStatusCode, Response]
+    parameters: t.Optional[t.List[Parameter]]
+    request_body: t.Optional[RequestBody] = Field(
         None,
         alias="requestBody",
     )
-    callbacks: t.Optional[
-        t.Union[
-            t.Mapping[str, Callback],
-            t.Mapping[str, Reference],
-        ]
-    ]
+    callbacks: t.Optional[t.Mapping[str, Callback]]
     deprecated: t.Optional[bool]
     security: t.Optional[t.List[SecurityRequirement]]
     servers: t.Optional[t.List[Server]]
 
 
-class PathItem(BaseModelSpecificationExtension):
-    ref: t.Optional[str] = Field(
-        None,
-        alias="$ref",
-    )
+class PathItem(BaseModelAllow):
     summary: t.Optional[str]
     description: t.Optional[str]
     get: t.Optional[Operation]
@@ -370,13 +541,13 @@ class PathItem(BaseModelSpecificationExtension):
     options: t.Optional[Operation]
     trace: t.Optional[Operation]
     servers: t.Optional[t.List[Server]]
-    parameters: t.Optional[Reference]
+    parameters: t.Optional[t.Any]
 
 
 Operation.update_forward_refs()
 
 
-class OAuthFlowImplicit(BaseModel):
+class OAuthFlowImplicit(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -385,7 +556,7 @@ class OAuthFlowImplicit(BaseModel):
     authorization_url: pydantic.AnyUrl = Field(alias="authorizationUrl")
 
 
-class OAuthFlowPassword(BaseModel):
+class OAuthFlowPassword(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -394,7 +565,7 @@ class OAuthFlowPassword(BaseModel):
     token_url: pydantic.AnyUrl = Field(alias="tokenUrl")
 
 
-class OAuthFlowClientCredentials(BaseModel):
+class OAuthFlowClientCredentials(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -403,7 +574,7 @@ class OAuthFlowClientCredentials(BaseModel):
     token_url: pydantic.AnyUrl = Field(alias="tokenUrl")
 
 
-class OAuthFlowAuthorizationCode(BaseModel):
+class OAuthFlowAuthorizationCode(BaseModelForbid):
     refresh_url: t.Optional[pydantic.AnyUrl] = Field(
         None,
         alias="refreshUrl",
@@ -413,7 +584,7 @@ class OAuthFlowAuthorizationCode(BaseModel):
     authorization_url: pydantic.AnyUrl = Field(alias="authorizationUrl")
 
 
-class OAuthFlows(BaseModel):
+class OAuthFlows(BaseModelForbid):
     implicit: t.Optional[OAuthFlowImplicit]
     password: t.Optional[OAuthFlowPassword]
     client_credentials: t.Optional[OAuthFlowClientCredentials] = Field(
@@ -426,26 +597,26 @@ class OAuthFlows(BaseModel):
     )
 
 
-class SecuritySchemeOAuth2(BaseModel):
+class SecuritySchemeOAuth2(BaseModelForbid):
     type: str = "oauth2"
     description: t.Optional[str]
     flows: OAuthFlows
 
 
-class SecuritySchemeApiKey(BaseModel):
+class SecuritySchemeApiKey(BaseModelForbid):
     type: str = "apiKey"
     description: t.Optional[str]
     name: str
     in_: SecurityIn = Field(alias="in")
 
 
-class SecuritySchemeOpenIdConnect(BaseModel):
+class SecuritySchemeOpenIdConnect(BaseModelForbid):
     type: str = "openIdConnect"
     description: t.Optional[str]
     open_id_connect_url: str = Field(alias="openIdConnectUrl")
 
 
-class SecuritySchemeHttp(BaseModel):
+class SecuritySchemeHttp(BaseModelForbid):
     type: str = "http"
     description: t.Optional[str]
     scheme: str
@@ -463,18 +634,18 @@ SecuritySchemeUnion = t.Union[
 ]
 
 
-class Components(BaseModel):
+class Components(BaseModelForbid):
     headers: HeadersUnion
-    schemas: t.Optional[t.Mapping[str, t.Union[Schema, Reference]]]
-    responses: t.Optional[t.Mapping[str, t.Union[Response, Reference]]]
-    parameters: t.Optional[t.Mapping[str, t.Union[Parameter, Reference]]]
-    examples: t.Optional[t.Mapping[str, t.Union[Example, Reference]]]
-    request_bodies: t.Optional[t.Mapping[str, t.Union[RequestBody, Reference]]] = Field(
+    schemas: t.Optional[t.Mapping[str, Schema]]
+    responses: t.Optional[t.Mapping[str, Response]]
+    parameters: t.Optional[t.Mapping[str, Parameter]]
+    examples: t.Optional[t.Mapping[str, Example]]
+    request_bodies: t.Optional[t.Mapping[str, RequestBody]] = Field(
         None,
         alias="requestBodies",
     )
-    links: t.Optional[t.Mapping[str, t.Union[Link, Reference]]]
-    callbacks: t.Optional[t.Mapping[str, t.Union[Callback, Reference]]]
+    links: t.Optional[t.Mapping[str, Link]]
+    callbacks: t.Optional[t.Mapping[str, Callback]]
     security_schemes: t.Optional[t.Mapping[str, SecuritySchemeUnion]] = Field(
         None,
         alias="securitySchemes",
@@ -484,18 +655,18 @@ class Components(BaseModel):
 Paths = t.Mapping[str, PathItem]
 
 
-class Contact(BaseModel):
+class Contact(BaseModelForbid):
     name: t.Optional[str]
     url: t.Optional[pydantic.AnyUrl]
     email: t.Optional[pydantic.EmailStr]
 
 
-class License(BaseModel):
+class License(BaseModelForbid):
     name: str
     url: t.Optional[pydantic.AnyUrl]
 
 
-class Info(BaseModelSpecificationExtension):
+class Info(BaseModelAllow):
     contact: t.Optional[Contact]
     description: t.Optional[str]
     license: t.Optional[License]
@@ -507,7 +678,7 @@ class Info(BaseModelSpecificationExtension):
     version: str
 
 
-class Tag(BaseModel):
+class Tag(BaseModelForbid):
     name: str
     description: t.Optional[str]
     external_docs: t.Optional[ExternalDocs] = Field(
@@ -517,7 +688,6 @@ class Tag(BaseModel):
 
 
 AllClass = t.Union[
-    Components,
     Contact,
     Encoding,
     Example,
@@ -547,73 +717,3 @@ AllClass = t.Union[
     Tag,
     XML,
 ]
-
-
-class OpenApi302(OpenApi, BaseModel):
-    version: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
-    components: t.Optional[Components]
-    openapi: OpenApiVersion
-    info: Info
-    paths: Paths
-    tags: t.Optional[t.List[Tag]]
-    servers: t.Optional[t.List[Server]]
-    security: t.Optional[t.List[SecurityRequirement]]
-    external_docs: t.Optional[ExternalDocs] = Field(
-        None,
-        alias="externalDocs",
-    )
-    __ref__: t.Optional[t.List[str]]
-
-    def _list_reference(self, obj: t.Any):
-        if isinstance(obj, Reference):
-            self.__ref__.append(obj.ref)  # type: ignore
-            return
-
-        if isinstance(obj, pydantic.AnyUrl) or isinstance(obj, pydantic.EmailStr):
-            return
-
-        if isinstance(obj, list):
-            for attr in obj:  # type: ignore
-                self._list_reference(attr)
-            return
-
-        if isinstance(obj, dict):
-            for attr in obj:  # type: ignore
-                self._list_reference(obj.get(attr))  # type: ignore
-            return
-
-        for typ in AllClass.__args__:  # type: ignore
-            if isinstance(obj, typ):
-                for attr in obj.__fields_set__:  # type: ignore
-                    sub_obj = getattr(obj, attr)  # type: ignore
-                    self._list_reference(sub_obj)
-
-    def _resolve_reference(self):
-        def _getattr(obj, attr):  # type: ignore
-
-            # _attr is needed for snake_case aliased attr
-            _attr = underscore(attr) if isinstance(attr, str) else attr  # type: ignore
-            if _attr != attr and hasattr(obj, _attr):  # type: ignore
-                return getattr(obj, _attr)  # type: ignore
-
-            if hasattr(obj, attr):  # type: ignore
-                return getattr(obj, attr)  # type: ignore
-
-            if isinstance(obj, dict) and attr in obj.keys():
-                return obj.get(attr)  # type: ignore
-
-            raise ValueError(f"Reference invalid. {attr} not found")
-
-        for ref in self.__ref__:  # type: ignore
-            unprefix_ref = ref.split("/")[1:]
-            unprefix_ref.insert(0, self)  # type: ignore
-            functools.reduce(_getattr, unprefix_ref)  # type: ignore
-
-    def __init__(self, **data) -> None:  # type: ignore
-        super().__init__(**data)
-        object.__setattr__(self, "__ref__", [])
-        for attr in self.__fields_set__:
-            obj = getattr(self, attr)
-            self._list_reference(obj)
-
-        self._resolve_reference()

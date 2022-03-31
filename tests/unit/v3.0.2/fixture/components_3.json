@@ -1,0 +1,70 @@
+{
+    "info": {
+        "contact": {
+            "email": "apiteam@swagger.io"
+        },
+        "title": "Draft",
+        "version": "1.0.0"
+    },
+    "openapi": "3.0.2",
+    "paths": {
+        "/shop": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "format": "int64",
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "example": "myshop",
+                                            "type": "string"
+                                        },
+                                        "pets": {
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "format": "int64",
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "example": "doggie",
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "description": "pet status in the store",
+                                                        "enum": [
+                                                            "available",
+                                                            "pending",
+                                                            "sold"
+                                                        ],
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name"
+                                                ],
+                                                "type": "object"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "name"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "successful operation"
+                    }
+                },
+                "summary": "Get shop"
+            }
+        }
+    }
+}
