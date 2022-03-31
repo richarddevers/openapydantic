@@ -15,7 +15,7 @@
 - ❌ 3.0.3
 - ❌ 3.1.0
 
-In my understanding, openapi versions are retrocompatibles (except for major version).
+Openapi versions are retrocompatibles (except for major version).
 
 So 3.0.2 specification should be able to handle 3.0.0 and 3.0.1 data.
 
@@ -41,7 +41,7 @@ Depending on your preference...
 
 Openapydantic provide an openapi specification (a.k.a "swagger file" in version 2.X) loader.
 
-This loader return a pydantic model so you can work with your specification like a common pydantic python object.
+This loader returns a pydantic model so you can work with your specification like a common pydantic python object.
 
 For each openapi specification version, a dedicated python class exist.
 
@@ -62,7 +62,7 @@ print(api.info)
 # if the version is not implemented, it will crash
 ```
 
-... or you can also specify a specific version if needed.
+... or you can also specify a specific version.
 
 It may be useful for backward compatibility (for eg: create an OpenApi302 object using data from an 3.0.1 openapi specfication ).
 
@@ -89,9 +89,9 @@ print(api.__version__)
 
 ### Reference interpolation
 
-Openapydantic will interpolate openapi refernce.
+Openapydantic will interpolate openapi references.
 
-If you api looks like this:
+If your api looks like this:
 
 ```yaml
 # my-api.yaml
@@ -177,6 +177,8 @@ print(
 As describe in the openapi specification some attributes are fix ('paths', 'content' etc...) and some can be mapping with a free key.
 
 Mapping must be accessed like common dict, either by direct key loading, either using .get('*key*')
+
+Note that file reference (e.g: "#/file.yaml" are currently not supported)
 
 ### Attributes name collision
 
