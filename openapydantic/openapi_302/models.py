@@ -3,6 +3,7 @@ import enum
 import typing as t
 
 import pydantic
+from jsonpath_ng import parse
 
 import openapydantic
 
@@ -43,23 +44,11 @@ class ComponentsResolver:
         cls,
         *,
         obj: t.Any,
-    ):
-        cls.find_ref_count = cls.find_ref_count + 1
-        if cls._find_ref:
-            return
-
-        if isinstance(obj, list):
-            for elt in obj:  # type: ignore
-                cls._find_ref(obj=elt)
-
-        if isinstance(obj, dict):
-            ref = obj.get("$ref")  # type: ignore
-            if ref:
-                cls._validate_ref(ref=ref)  # type: ignore
-                cls.ref_find = True
-
-            for key in obj:  # type: ignore
-                cls._find_ref(obj=obj.get(key))  # type: ignore
+    ) -> t.List[str]:
+        jsonpath_expr = parse("$..'$ref'")  # type:ignore
+        return list(
+            set([match.value for match in jsonpath_expr.find(obj)])  # type:ignore
+        )
 
     @classmethod
     def _search_component_for_ref(
@@ -69,13 +58,16 @@ class ComponentsResolver:
         value: t.Dict[str, t.Any],
         component_type: ComponentType,
     ):
-        cls.ref_find = False
-        cls._find_ref(
+        references = cls._find_ref(
             obj=value,
         )
 
-        if cls.ref_find:
-            cls.with_ref[component_type.name][key] = value
+        cls.ref_find = bool(references)
+
+        if references:
+            cls.with_ref[component_type.name][key] = {}
+            cls.with_ref[component_type.name][key]["values"] = value
+            cls.with_ref[component_type.name][key]["references"] = references
         else:
             cls.without_ref[component_type.name][key] = value
 
@@ -134,8 +126,9 @@ class ComponentsResolver:
 
             component_dict = ComponentsResolver._get_component_object(
                 component_type=component_type,
-                values=values,
+                values=values["values"],
             )
+
             cls._search_component_for_ref(
                 key=key,
                 value=component_dict,  # type: ignore
@@ -146,7 +139,7 @@ class ComponentsResolver:
 
             if cls.ref_find:
                 # print(f"BAD INFO:still ref in:{key}:{component_dict}")
-                cls.with_ref[component_type.name][key] = component_dict
+                cls.with_ref[component_type.name][key]["values"] = component_dict
             else:
                 # print(f"GOOD INFO:adding without ref:{key}:{component_dict}")
                 cls.without_ref[component_type.name][key] = component_dict
@@ -207,6 +200,7 @@ class RefModel(OpenApiBaseModel):
         # print("====== VALIDATE ROOT ======")
         # print(f"ref:{ref}")
         if ref:
+            # breakpoint()
             # load reference from ComponentsResolver
             ref_type, ref_key = cls._get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
@@ -214,7 +208,6 @@ class RefModel(OpenApiBaseModel):
             ref_found: t.Dict[str, t.Any] = ComponentsResolver.without_ref[
                 ref_type.name
             ].get(ref_key)
-
             # print(f"ref_found:{ref_found}")
             if not ref_found:
                 raise ValueError(f"Reference not found:{ref_type}/{ref_key}")

@@ -38,12 +38,10 @@ def load_api(
     clean_memory: bool = True,
 ) -> OpenApi302:
     models.ComponentsResolver.resolve(raw_api=raw_api)
-
     data: t.Dict[str, t.Any] = {
         **raw_api,
         "raw_api": raw_api,
     }
-
     api = OpenApi302(**data)
     if clean_memory:
         models.ComponentsResolver.init()

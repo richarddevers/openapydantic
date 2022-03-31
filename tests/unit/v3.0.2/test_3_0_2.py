@@ -96,3 +96,20 @@ async def test_reference_interpolation_x(
     api = load_api_302(raw_api=raw_api)
 
     assert expected == json.loads(api.as_clean_json())
+
+
+# @pytest.mark.asyncio
+# async def test_oneshot() -> None:
+#     file_path = (
+#         "/workspaces/openapydantic/tests/unit/v3.0.0/fixture/ok/link-example.yaml"
+#     )
+#     raw_api = await openapydantic.load_spec(file_path=file_path)
+#     load_api_302(raw_api=raw_api)
+
+
+@pytest.mark.asyncio
+async def test_oneshot(
+    fixture_loader: FixtureLoader,
+) -> None:
+    raw_api = fixture_loader.load_yaml(filename=f"components_4.yaml")
+    load_api_302(raw_api=raw_api)
