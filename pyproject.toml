@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openapydantic"
-version = "0.2.0"
+version = "0.2.1"
 description = "openapi specification parser based on pydantic"
 authors = ["Richard Devers <ritchiedev25@gmail.com>"]
 include = ["openapydantic/py.typed"]

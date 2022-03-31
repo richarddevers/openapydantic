@@ -1,3 +1,7 @@
+# v0.2.1 (2022-03-31)
+
+- Minor fix
+
 # v0.2.0 (2022-03-31)
 
 - References are now interpolated into the final object

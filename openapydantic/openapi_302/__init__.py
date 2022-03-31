@@ -10,9 +10,10 @@ from openapydantic.openapi_302 import models
 Field = pydantic.Field
 
 OpenApiVersion = common.OpenApiVersion
+OpenApiBaseModel = common.OpenApiBaseModel
 
 
-class OpenApi302(pydantic.BaseModel):
+class OpenApi302(OpenApiBaseModel):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
     components: t.Optional[models.Components]
     openapi: OpenApiVersion
@@ -29,48 +30,6 @@ class OpenApi302(pydantic.BaseModel):
 
     class Config:
         extra = "forbid"
-
-    def as_clean_json(
-        self,
-        *,
-        exclude_components: bool = True,
-        exclude_raw_api: bool = True,
-    ) -> str:
-        exclude: t.Set[str] = set()
-
-        if exclude_components:
-            exclude.add("components")
-
-        if exclude_raw_api:
-            exclude.add("raw_api")
-
-        return self.json(
-            by_alias=True,
-            exclude_unset=True,
-            exclude_none=True,
-            exclude=exclude,
-        )
-
-    def as_clean_dict(
-        self,
-        *,
-        exclude_components: bool = True,
-        exclude_raw_api: bool = True,
-    ) -> t.Dict[str, t.Any]:
-        exclude: t.Set[str] = set()
-
-        if exclude_components:
-            exclude.add("components")
-
-        if exclude_raw_api:
-            exclude.add("raw_api")
-
-        return self.dict(
-            by_alias=True,
-            exclude_unset=True,
-            exclude_none=True,
-            exclude=exclude,
-        )
 
 
 def load_api(
