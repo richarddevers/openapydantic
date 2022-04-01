@@ -42,7 +42,6 @@ class OpenApi302(OpenApiBaseModel):
 def load_api(
     *,
     raw_api: t.Dict[str, t.Any],
-    clean_memory: bool = True,
 ) -> OpenApi302:
     ComponentsResolver.resolve(raw_api=raw_api)
     data: t.Dict[str, t.Any] = {
@@ -50,6 +49,5 @@ def load_api(
         "raw_api": raw_api,
     }
     api = OpenApi302(**data)
-    if clean_memory:
-        ComponentsResolver.init()
+
     return api

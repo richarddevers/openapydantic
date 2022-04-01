@@ -3,7 +3,7 @@ import json
 import pytest
 
 import openapydantic
-from tests.unit import conftest
+from tests.e2e import conftest
 
 list_specific_fixtures_version = conftest.list_specific_fixtures_version
 SpecVersion = conftest.SpecVersion
@@ -98,13 +98,14 @@ async def test_reference_interpolation_x(
     assert expected == json.loads(api.as_clean_json())
 
 
-@pytest.mark.asyncio
-async def test_oneshot() -> None:
-    file_path = (
-        "/workspaces/openapydantic/tests/unit/v3.0.0/fixture/ok/link-example.yaml"
-    )
-    raw_api = await openapydantic.load_spec(file_path=file_path)
-    load_api_302(raw_api=raw_api)
+# @pytest.mark.asyncio
+# async def test_oneshot() -> None:
+#     file_path = (
+#         "/workspaces/openapydantic/tests/e2e/v3.0.1/fixture/ko/self-reference.yaml"
+#     )
+#     raw_api = await openapydantic.load_spec(file_path=file_path)
+#     api = load_api_302(raw_api=raw_api)
+#     print(api.as_clean_json())
 
 
 # @pytest.mark.asyncio

@@ -33,11 +33,39 @@ class ComponentsResolver:
             cls.without_ref[elt.name] = {}
 
     @staticmethod
-    def _validate_ref(ref: str) -> None:
-        if ".yaml" in ref or ".json" in ref:
-            raise NotImplementedError("File reference not implemented")
-        if not ref.startswith("#/"):
-            raise ValueError(f"reference {ref} has invalid format")
+    def _validate_references_format(
+        references: t.List[str],
+    ) -> None:
+        for ref in references:
+            if ".yaml" in ref or ".json" in ref:
+                raise NotImplementedError("File reference not implemented")
+            if not ref.startswith("#/"):
+                raise ValueError(f"reference {ref} has invalid format")
+
+    @staticmethod
+    def _get_ref_data(
+        ref: str,
+    ) -> t.Tuple[ComponentType, str]:
+        ref_split = ref.split("/")  # format #/components/schemas/Pet
+        ref_type = ComponentType(ref_split[2])
+        ref_key = ref_split[-1]
+        return ref_type, ref_key
+
+    @classmethod
+    def _validate_self_references(
+        cls,
+        *,
+        key: str,
+        component_type: ComponentType,
+        references: t.List[str],
+    ) -> None:
+        for ref in references:
+            ref_type, ref_key = cls._get_ref_data(ref=ref)
+            if ref_type == component_type and ref_key == key:
+                raise ValueError(
+                    f"Reference {component_type.name}:{key} referencing itself. "
+                    f"Self referencement is forbidden"
+                )
 
     @classmethod
     def _find_ref(
@@ -63,6 +91,16 @@ class ComponentsResolver:
         )
 
         cls.ref_find = bool(references)
+
+        cls._validate_references_format(
+            references=references,
+        )
+
+        cls._validate_self_references(
+            key=key,
+            component_type=component_type,
+            references=references,
+        )
 
         if references:
             cls.with_ref[component_type.name][key] = {}
@@ -114,6 +152,7 @@ class ComponentsResolver:
         cls,
         component_type: ComponentType,
     ) -> None:
+        # print("===========")
         cls.consolidate_count = cls.consolidate_count + 1
         component_dict = {}
         with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
@@ -121,10 +160,11 @@ class ComponentsResolver:
         # print(f"with_ref remaining:{len(with_ref_copy)}")
         # print(f"remaining:{[k for k in with_ref_copy]}")
         for key, values in with_ref_copy.items():
-            if not all(
-                [ref for ref in values["references"] if ref in cls.without_ref.keys()]
-            ):
-                continue
+            # breakpoint()
+            # if not all(
+            #     [ref for ref in values["references"] if ref in cls.without_ref.keys()]
+            # ):
+            #     continue
             cls.ref_find = False
             # print(f"INFO:{key}:{values}")
 
@@ -142,13 +182,14 @@ class ComponentsResolver:
             # print(key)
 
             if cls.ref_find:
-                # print(f"BAD INFO:still ref in:{key}:{component_dict}")
+                # print(f"BAD INFO:still ref in:{key}")
                 cls.with_ref[component_type.name][key]["values"] = component_dict
             else:
-                # print(f"GOOD INFO:adding without ref:{key}:{component_dict}")
+                # print(f"GOOD INFO:adding without ref:{key}")
                 cls.without_ref[component_type.name][key] = component_dict
                 del cls.with_ref[component_type.name][key]
 
+        # breakpoint()
         if len(cls.with_ref[component_type.name]):
             cls._consolidate_components(component_type=component_type)
 
@@ -214,7 +255,9 @@ class RefModel(OpenApiBaseModel):
             ].get(ref_key)
             # print(f"ref_found:{ref_found}")
             if not ref_found:
-                raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
+                return values
+                # breakpoint()
+                # raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
             return ref_found
         return values

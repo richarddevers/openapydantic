@@ -1,0 +1,2803 @@
+---
+openapi: 3.0.1
+info:
+  title: Vehicle API
+  version: 1.0.0
+  description: Vehicle API documentation
+  termsOfService: ""
+  contact:
+    name: ""
+    url: ""
+    email: info@intellica.net
+  license:
+    name: unlicensed
+    url: ""
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/irfan.nisanci/vehicle-be/1.0.0
+paths:
+  /api/v1/barcodes:
+    get:
+      tags:
+      - barcode-resource
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BarcodeDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllBarcodesUsingGET
+      summary: getAllBarcodes
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarcodeDTO'
+      tags:
+      - barcode-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeDTO'
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createBarcodeUsingPOST
+      summary: createBarcode
+  /api/v1/barcodes/{id}:
+    get:
+      tags:
+      - barcode-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getBarcodeUsingGET
+      summary: getBarcode
+    delete:
+      tags:
+      - barcode-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                deleteVehicleBarcode:
+                  value: "true"
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      operationId: deleteVehicleBarcode
+      summary: deleteVehicleBarcode
+      description: "Kayıt Oluşturma > Barkod No, ekranındaki araca ait barkodu silmek\
+        \ için kullanılacak api."
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarcodeDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/BarcodeDTO'
+      tags:
+      - barcode-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeDTO'
+              examples:
+                patchVehicleBarcode:
+                  value:
+                    barcodeNumber: "8135465"
+                    description: Motor Üzerindeki Barkod
+                    id: 88
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      operationId: patchVehicleBarcode
+      summary: patchVehicleBarcode
+      description: "Kayıt Oluşturma > Barkod No, ekranındaki araca ait barkodu gü\
+        ncellemek için kullanılacak api."
+  /api/v1/categories:
+    get:
+      tags:
+      - category-resource
+      parameters:
+      - style: form
+        name: eagerload
+        description: eagerload
+        schema:
+          type: boolean
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllCategoriesUsingGET
+      summary: getAllCategories
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      tags:
+      - category-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDTO'
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createCategoryUsingPOST
+      summary: createCategory
+  /api/v1/categories/{id}:
+    get:
+      tags:
+      - category-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getCategoryUsingGET
+      summary: getCategory
+    delete:
+      tags:
+      - category-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: deleteCategoryUsingDELETE
+      summary: deleteCategory
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      tags:
+      - category-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDTO'
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: partialUpdateCategoryUsingPATCH
+      summary: partialUpdateCategory
+  /api/v1/examine-comments/{id}:
+    get:
+      tags:
+      - examine-comment-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineCommentDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getExamineComment
+      summary: getExamineComment
+    delete:
+      tags:
+      - examine-comment-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                deleteExamineComment:
+                  value: "true"
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: false
+      operationId: deleteExamineComment
+      summary: deleteExamineComment
+      description: 'Not silmek için kullanılacak. '
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamineCommentDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ExamineCommentDTO'
+      tags:
+      - examine-comment-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineCommentDTO'
+              examples:
+                partialUpdateExamineComment:
+                  value:
+                    comment: Lorem ipsum dolar sit amet
+                    id: 27
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: false
+      operationId: partialUpdateExamineComment
+      summary: partialUpdateExamineComment
+      description: notlarım modülünde notu düzenlemek için kullanılacak. assigneeId
+        bilgisine göre update yapılacak.
+  /api/v1/examine-comments:
+    get:
+      tags:
+      - examine-comment-resource
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamineCommentDTO'
+              examples:
+                getAllExamineComments:
+                  value:
+                  - comment: Lorem ipsum dolar sit amet
+                    commentDate: 2018-02-10T09:30Z
+                    id: 82
+                  - comment: Lorem ipsum dolar sit amet
+                    commentDate: 2018-02-10T09:30Z
+                    id: 94
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+      operationId: getAllExamineComments
+      summary: getAllExamineComments
+      description: Notlarım modülünde yorumların listelenmesi için kullanılacak. Kullanıcının
+        assigneeId bilgisine göre listelenecek.
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamineCommentDTO'
+        required: true
+      tags:
+      - examine-comment-resource
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineCommentDTO'
+              examples:
+                createExamineComment:
+                  value:
+                    comment: Lorem ipsum dolar sit amet
+                    commentDate: 2018-02-10T09:30Z
+                    examine:
+                      id: 18
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createExamineComment
+      summary: createExamineComment
+      description: Notlarım modülü için not oluşturmak için kullanılacak. assigneeId
+        bilgisine göre ekleme yapılacak
+  /api/v1/examines:
+    get:
+      tags:
+      - examine-resource
+      parameters:
+      - style: form
+        name: eagerload
+        description: eagerload
+        schema:
+          type: boolean
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamineDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllExaminesUsingGET
+      summary: getAllExamines
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamineDTO'
+            examples:
+              createExamine:
+                value:
+                  caseNumber: "52413"
+                  caseType: PARCA_INCELEME
+                  description: some text
+                  ebysNumber: ebys3445
+                  expertiseNumber: ex78567
+                  status: OPEN
+                  vehicles:
+                  - categories:
+                    - id: 65
+                    description: some text
+                    year: 1995
+      tags:
+      - examine-resource
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineDTO'
+              examples:
+                createExamine:
+                  value:
+                    caseNumber: some text
+                    caseType: ARAC_INCELEME
+                    description: some text
+                    ebysNumber: some text
+                    expertiseNumber: some text
+                    id: 56
+                    status: OPEN
+                    vehicles:
+                    - categories:
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 75
+                        name: some text
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 36
+                        name: some text
+                      description: some text
+                      id: 81
+                      year: 1992
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: createExamine
+      summary: createExamine
+      description: Yeni kayıt oluşturmak için kullanılacak
+  /api/v1/examines/{id}:
+    get:
+      tags:
+      - examine-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getExamineUsingGET
+      summary: getExamine
+    delete:
+      tags:
+      - examine-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: deleteExamineUsingDELETE
+      summary: deleteExamine
+    patch:
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ExamineDTO'
+            examples:
+              partialUpdateExamine:
+                value:
+                  caseNumber: "34563"
+                  caseType: ARAC_INCELEME
+                  description: some text
+                  ebysNumber: ebys4567
+                  expertiseNumber: ex758436
+                  id: 95
+                  status: CANCEL
+                  vehicles:
+                  - categories:
+                    - active: true
+                      description: some text
+                      fromCategories:
+                      - {}
+                      - {}
+                      id: 26
+                      name: some text
+                    - active: true
+                      description: some text
+                      fromCategories:
+                      - {}
+                      - {}
+                      id: 2
+                      name: some text
+                    description: some text
+                    id: 59
+                    year: 12
+      tags:
+      - examine-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamineDTO'
+              examples:
+                partialUpdateExamine:
+                  value:
+                    caseNumber: "567904"
+                    caseType: ARAC_INCELEME
+                    description: some text
+                    ebysNumber: ebys456
+                    expertiseNumber: ex8678
+                    id: 66
+                    status: IN_PROGRESS
+                    vehicles:
+                    - categories:
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 64
+                        name: some text
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 11
+                        name: some text
+                      description: some text
+                      id: 53
+                      year: 37
+                    - categories:
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 22
+                        name: some text
+                      - active: true
+                        description: some text
+                        fromCategories:
+                        - {}
+                        - {}
+                        id: 21
+                        name: some text
+                      description: some text
+                      id: 48
+                      year: 85
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      operationId: partialUpdateExamine
+      summary: partialUpdateExamine
+      description: "Examine güncellemek için kullanılacak. Kayıt oluşturma > ŞasiNo/Parç\
+        a No > Onay Ekranı, Tamamla butonu için kullanılacak api. İlerle butonları\
+        nda examine tipini inprogress yapmak için kullanılacak."
+  /api/v1/pieces/{id}:
+    get:
+      tags:
+      - piece-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getPieceUsingGET
+      summary: getPiece
+    delete:
+      tags:
+      - piece-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                patchVehiclePiece:
+                  value: "true"
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: false
+      operationId: deleteVehiclePiece
+      summary: deleteVehiclePiece
+      description: "Kayıt olusturma > Parca No, ekranında araca ait parçaların silinmesi\
+        \ icin kullanılacak api"
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PieceDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/PieceDTO'
+      tags:
+      - piece-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceDTO'
+              examples:
+                patchVehiclePiece:
+                  value:
+                    description: some text
+                    id: 61
+                    pieceType:
+                      id: 20
+                    serialNumber: some text
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: false
+      operationId: patchVehiclePiece
+      summary: patchVehiclePiece
+      description: "Kayıt olusturma > Parca No, ekranında araca ait bilgilerin dü\
+        zenlenmesi icin kullanılacak api"
+  /api/v1/vehicles:
+    get:
+      tags:
+      - vehicle-resource
+      parameters:
+      - style: form
+        name: eagerload
+        description: eagerload
+        schema:
+          type: boolean
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllVehiclesUsingGET
+      summary: getAllVehicles
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleDTO'
+      tags:
+      - vehicle-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleDTO'
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createVehicleUsingPOST
+      summary: createVehicle
+  /api/v1/vehicles/{id}:
+    get:
+      tags:
+      - vehicle-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getVehicleUsingGET
+      summary: getVehicle
+    delete:
+      tags:
+      - vehicle-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: deleteVehicleUsingDELETE
+      summary: deleteVehicle
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/VehicleDTO'
+      tags:
+      - vehicle-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleDTO'
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: partialUpdateVehicleUsingPATCH
+      summary: partialUpdateVehicle
+  /api/v1/pieces:
+    get:
+      tags:
+      - piece-resource
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PieceDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllPiecesUsingGET
+      summary: getAllPieces
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PieceDTO'
+      tags:
+      - piece-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceDTO'
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createPieceUsingPOST
+      summary: createPiece
+  /api/v1/piece-types/{id}:
+    get:
+      tags:
+      - piece-type-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceTypeDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getPieceTypeUsingGET
+      summary: getPieceType
+    delete:
+      tags:
+      - piece-type-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: deletePieceTypeUsingDELETE
+      summary: deletePieceType
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PieceTypeDTO'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/PieceTypeDTO'
+      tags:
+      - piece-type-resource
+      parameters:
+      - style: simple
+        name: id
+        description: id
+        schema:
+          format: int64
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceTypeDTO'
+          description: OK
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+      deprecated: true
+      operationId: partialUpdatePieceTypeUsingPATCH
+      summary: partialUpdatePieceType
+  /api/v1/piece-types:
+    get:
+      tags:
+      - piece-type-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PieceTypeDTO'
+              examples:
+                getAllPieceTypes:
+                  value:
+                  - active: true
+                    description: Şasi No
+                    id: 67
+                    name: SASI_NO
+                  - active: true
+                    description: Motor No
+                    id: 98
+                    name: MOTOR_NO
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: getAllPieceTypes
+      summary: getAllPieceTypes
+      description: "kayıt olusturma > parca no,  ekranındaki dropdowndaki parca adlarini\
+        \ listelemek icin kullanilacak."
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PieceTypeDTO'
+      tags:
+      - piece-type-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceTypeDTO'
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: createPieceTypeUsingPOST
+      summary: createPieceType
+  /api/v1/vehicle-panel/graph:
+    get:
+      parameters:
+      - name: period
+        description: Yıl bilgisi
+        schema:
+          format: date
+          type: string
+        in: query
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Fount
+      operationId: getDashboardGraph
+      summary: getDashboardGraph
+      description: Dashboard ekranı toplam inceleme sayısını gösteren grafiği gösterecek
+        api
+  /api/v1/vehicle-panel/summary:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryVM'
+              examples:
+                getDashboardCounterSummary:
+                  value:
+                    countVehicleData: 8
+                    countPieces: 51
+                    countDataSource: 14
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Fount
+      operationId: getDashboardCounterSummary
+      summary: getDashboardCounterSummary
+      description: "Dashboard ekranı Araç Data Kartı, Kayıtlı Parça, Veri Kaynağı\
+        \ bilgilerini gösterecek api."
+  /api/v1/vehicle-panel/date-summary:
+    get:
+      parameters:
+      - name: period
+        description: Ay bilgisi
+        schema:
+          format: date
+          type: string
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardDateCounterVM'
+              examples:
+                getDashboardCounterDateSummary:
+                  value:
+                    dailyExamineCount: 27
+                    weeklyExamineCount: 37
+                    monthlyExamineCount: 17
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Fount
+      operationId: getDashboardCounterDateSummary
+      summary: getDashboardCounterDateSummary
+      description: Dashboard ekranı Aylık inceleme bilgisini gösterecek api.
+  /api/v1/vehicle-panel/data-card/:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DashboardDataCardVM'
+              examples:
+                getAllVehicleDataCard:
+                  value:
+                  - brand: some text
+                    dataCardCount: 86
+                    lastModifiedDate: 2018-01-17
+                  - brand: some text
+                    dataCardCount: 76
+                    lastModifiedDate: 2018-01-17
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Fount
+      operationId: getAllVehicleDataCard
+      summary: getAllVehicleDataCard
+      description: Dashboard ekranı Araç Data Kartındaki dataları listelemek icin
+        kullanilacak api.
+    parameters:
+    - name: search
+      description: Üretici/ Marka
+      schema:
+        type: string
+      in: query
+  /api/v1/data-card/details:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataCardDetailsVM'
+              examples:
+                getDataCardDetails:
+                  value:
+                    pieceDTO:
+                    - description: some text
+                      id: 69
+                      pieceType:
+                        description: Direksiyon Zemberek No
+                        name: DIREKSIYON_ZEMBEREK_NO
+                      serialNumber: "1514846654"
+                    - description: some text
+                      id: 67
+                      pieceType:
+                        description: Boya Plakası
+                        name: BOYA_PLAKASI
+                      serialNumber: "12345181"
+                    barcodeDTO:
+                    - barcodeNumber: "54851861"
+                      description: 2014 Hyundai Tucson
+                      id: 6
+                    - barcodeNumber: "54845154"
+                      description: Motor Üzerindeki Barkod
+                      id: 26
+                    examineDTO:
+                      caseNumber: "51845"
+                      caseType: ARAC_INCELEME
+                      description: some text
+                      ebysNumber: ebys548412
+                      expertiseNumber: ex511564
+                      id: 0
+                      status: CANCEL
+                      vehicles:
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 49
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 14
+                          name: some text
+                        description: some text
+                        id: 86
+                        year: 84
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 89
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 98
+                          name: some text
+                        description: some text
+                        id: 13
+                        year: 2
+          description: OK
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: getDataCardDetails
+      summary: getDataCardDetails
+      description: "Kayıt olusturma > Parca No > Onay ekranında examine'a ait bilgilerin\
+        \ (araç şasi no, parça no, barkod no) listelenmesi için kullanılacak."
+    parameters:
+    - examples:
+        vehicleId:
+          value: "58"
+      name: vehicleId
+      description: Arac Id bilgisi
+      schema:
+        type: integer
+      in: query
+      required: true
+  /api/v1/data-card/create-pdf:
+    post:
+      tags: []
+      responses:
+        "200":
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: createDataCardPdf
+      summary: createDataCardPdf
+      description: Onay ekranında data kartını pdf olarak oluşturmak için kullanılacak.
+  /api/v1/data-card/print/:
+    post:
+      tags: []
+      responses:
+        "200":
+          description: OK
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: printDataCard
+      summary: printDataCard
+      description: Onay ekranında data kartının çıktısını almak için kullanılacak.
+  /api/v1/vehicle-database:
+    get:
+      tags: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataCardDetailsVM'
+              examples:
+                getVehicleDataCard:
+                  value:
+                  - pieceDTO:
+                    - description: some text
+                      id: 69
+                      pieceType:
+                        description: Direksiyon Zemberek No
+                      serialNumber: "1514846654"
+                    - description: some text
+                      id: 67
+                      pieceType:
+                        description: Boya Plakası
+                      serialNumber: "12345181"
+                    barcodeDTO:
+                    - barcodeNumber: "54851861"
+                      description: 2014 Hyundai Tucson
+                      id: 6
+                    - barcodeNumber: "54845154"
+                      description: Motor Üzerindeki Barkod
+                      id: 26
+                    examineDTO:
+                      caseNumber: "51845"
+                      caseType: ARAC_INCELEME
+                      description: some text
+                      ebysNumber: ebys548412
+                      expertiseNumber: ex511564
+                      id: 0
+                      status: CANCEL
+                      vehicles:
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 49
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 14
+                          name: some text
+                        description: some text
+                        id: 86
+                        year: 84
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 89
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 98
+                          name: some text
+                        description: some text
+                        id: 13
+                        year: 2
+                  - pieceDTO:
+                    - description: some text
+                      id: 69
+                      pieceType:
+                        description: Direksiyon Zemberek No
+                      serialNumber: "1514846654"
+                    - description: some text
+                      id: 67
+                      pieceType:
+                        description: Boya Plakası
+                      serialNumber: "12345181"
+                    barcodeDTO:
+                    - barcodeNumber: "54851861"
+                      description: 2014 Hyundai Tucson
+                      id: 6
+                    - barcodeNumber: "54845154"
+                      description: Motor Üzerindeki Barkod
+                      id: 26
+                    examineDTO:
+                      caseNumber: "51845"
+                      caseType: ARAC_INCELEME
+                      description: some text
+                      ebysNumber: ebys548412
+                      expertiseNumber: ex511564
+                      id: 0
+                      status: CANCEL
+                      vehicles:
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 49
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 14
+                          name: some text
+                        description: some text
+                        id: 86
+                        year: 84
+                      - categories:
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 89
+                          name: some text
+                        - active: true
+                          description: some text
+                          fromCategories:
+                          - {}
+                          - {}
+                          id: 98
+                          name: some text
+                        description: some text
+                        id: 13
+                        year: 2
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: getVehicleDataCard
+      summary: getVehicleDataCard
+    parameters:
+    - name: filterType
+      description: ŞasiNo/ParçaNo/BarkodNo
+      schema:
+        type: string
+      in: query
+      required: true
+    - name: search
+      description: Textbox değeri
+      schema:
+        type: string
+      in: query
+      required: true
+    - name: pieceType
+      description: Parça Adı
+      schema:
+        type: string
+      in: query
+  /api/v1/pieces-vehicle:
+    get:
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sortorder is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      - examples:
+          vehicleId:
+            value: "58"
+        name: vehicleId
+        description: Arac Id bilgisi
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PieceDTO'
+              examples:
+                getAllPiecesByVehicle:
+                  value:
+                  - description: some text
+                    id: 14
+                    pieceType:
+                      active: true
+                      description: Şasi No
+                      id: 20
+                      name: SASI_NO
+                    serialNumber: "1234566789"
+                  - description: some text
+                    id: 14
+                    pieceType:
+                      active: true
+                      description: Motor No
+                      id: 11
+                      name: MOTOR_NO
+                    serialNumber: "1234566789"
+          description: OK
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: getAllPiecesByVehicle
+      summary: getAllPiecesByVehicle
+      description: "Kayıt olusturma > Parca No, ekranında araca ait parcaları listelemek\
+        \ icin kullanılacak. (Table)"
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PieceDTO'
+            examples:
+              addVehiclePieces:
+                value:
+                  description: some text
+                  pieceType:
+                    id: 87
+                  serialNumber: "123456789"
+      tags:
+      - piece-resource
+      parameters:
+      - examples:
+          vehicleId:
+            value: "58"
+        name: vehicleId
+        description: Arac Id bilgisi
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieceDTO'
+              examples:
+                addVehiclePieces:
+                  value:
+                    description: some text
+                    id: 70
+                    pieceType:
+                      active: true
+                      description: some text
+                      id: 15
+                      name: some text
+                    serialNumber: some text
+          description: Created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: addVehiclePiece
+      summary: addVehiclePieces
+      description: Parça no ekle ekranında yeni parça ekle icin kullanılacak.
+    parameters:
+    - style: form
+      allowReserved: true
+      name: page
+      description: Page number of the requested page
+      schema:
+        format: int32
+        type: integer
+      in: query
+      required: false
+    - style: form
+      allowReserved: true
+      name: size
+      description: Size of a page
+      schema:
+        format: int32
+        type: integer
+      in: query
+      required: false
+    - style: form
+      allowReserved: true
+      name: sort
+      description: "Sorting criteria in the format: property(,asc|desc). Default sortorder\
+        \ is ascending. Multiple sort criteria are supported."
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      required: false
+    - examples:
+        vehicleId:
+          value: "58"
+      name: vehicleId
+      description: Arac Id bilgisi
+      schema:
+        type: integer
+      in: query
+      required: true
+  /api/v1/barcodes-vehicle:
+    get:
+      tags:
+      - barcode-resource
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: sort
+        description: "Sorting criteria in the format: property(,asc|desc). Default\
+          \ sortorder is ascending. Multiple sort criteria are supported."
+        schema:
+          type: array
+          items:
+            type: string
+        in: query
+        required: false
+      - name: vehicleId
+        description: Aracin Id bilgisi
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BarcodeDTO'
+              examples:
+                getAllBarcodesByVehicle:
+                  value:
+                  - barcodeNumber: "123456789"
+                    description: Motor Üzerindeki Barkod
+                    id: 92
+                  - barcodeNumber: "1564891"
+                    description: Airbag Üzerindeki Barkod
+                    id: 96
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: getAllBarcodesByVehicle
+      summary: getAllBarcodesByVehicle
+      description: "Kayt Olusturma > Barkod N, ekranında araca ait kayıtlı barkodları\
+        n listelenmesi icin kullanilacak api."
+    post:
+      parameters:
+      - name: vehicleId
+        description: Aracin Id bilgisi
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeDTO'
+              examples:
+                addVehicleBarcodes:
+                  value:
+                    barcodeNumber: "2516515"
+                    description: Motor Üzerindeki Barkod
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      operationId: addVehicleBarcodes
+      summary: addVehicleBarcodes
+      description: "Kayıt Olusturma > Barkod No, ekranında araca yeni barkod eklemek\
+        \ icin kullanilacak api"
+    parameters:
+    - style: form
+      allowReserved: true
+      name: page
+      description: Page number of the requested page
+      schema:
+        format: int32
+        type: integer
+      in: query
+      required: false
+    - style: form
+      allowReserved: true
+      name: size
+      description: Size of a page
+      schema:
+        format: int32
+        type: integer
+      in: query
+      required: false
+    - style: form
+      allowReserved: true
+      name: sort
+      description: "Sorting criteria in the format: property(,asc|desc). Default sortorder\
+        \ is ascending. Multiple sort criteria are supported."
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      required: false
+    - name: vehicleId
+      description: Aracin Id bilgisi
+      schema:
+        type: integer
+      in: query
+      required: true
+  /api/v1/examines/current-user:
+    get:
+      tags:
+      - examine-resource
+      parameters:
+      - style: form
+        allowReserved: true
+        name: page
+        description: Page number of the requested page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      - style: form
+        allowReserved: true
+        name: size
+        description: Size of a page
+        schema:
+          format: int32
+          type: integer
+        in: query
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamineDTO'
+              examples:
+                getAllExaminesByCurrentUser:
+                  value: |-
+                    [
+                        {
+                            "caseNumber": "51564",
+                            "caseType": "ARAC_INCELEME",
+                            "description": "some text",
+                            "ebysNumber": "ebys7345",
+                            "expertiseNumber": "ex576456",
+                            "id": 33,
+                            "status": "CANCEL",
+                        },
+                        {
+                            "caseNumber": "45656",
+                            "caseType": "ARAC_INCELEME",
+                            "description": "some text",
+                            "ebysNumber": "ebys345",
+                            "expertiseNumber": "ex784",
+                            "id": 14,
+                            "status": "OPEN",
+                        }
+                    ]
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+      operationId: getAllExaminesByCurrentUser
+      summary: getAllExaminesByCurrentUser
+      description: Süren İşlemler İçin kullanılacak.
+  /api/v1/categories-vehicle-class:
+    get:
+      tags:
+      - category-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryDTO'
+              examples:
+                getCategoryVehicleClass:
+                  value:
+                  - active: true
+                    description: some text
+                    fromCategories:
+                    - {}
+                    - {}
+                    id: 6
+                    name: some text
+                  - active: true
+                    description: some text
+                    fromCategories:
+                    - {}
+                    - {}
+                    id: 17
+                    name: some text
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+      operationId: getCategoryVehicleClass
+      summary: getCategoryVehicleClass
+      description: Kayıt ekranında Araç Sınıfı dropdown bilgilerini göstermek için
+        kullanılacak.
+    parameters:
+    - examples:
+        toCategoryId:
+          value: "1"
+      name: toCategoryId
+      description: toCategoryId bilgisi sınıf ismindeki kategorinin id'sini içerecek.
+        toCategoryId=1
+      schema:
+        type: integer
+      in: query
+  /api/v1/categories-vehicle-brand:
+    get:
+      tags:
+      - category-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryDTO'
+              examples:
+                getCategoryVehicleClass:
+                  value:
+                    active: true
+                    description: some text
+                    fromCategories:
+                    - {}
+                    - {}
+                    id: 53
+                    name: some text
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+      operationId: getCategoryVehicleBrand
+      summary: getCategoryVehicleBrand
+      description: Kayıt ekranında araç marka dropdown bilgisi için kullanılacak.
+    parameters:
+    - examples:
+        toCategoryId:
+          value: "8"
+      name: toCategoryId
+      description: toCategoryId bilgisi seçili olan araç sınıfının id'sini içerecek.
+        toCategoryId=8
+      schema:
+        type: integer
+      in: query
+  /api/v1/categories-vehicle-model:
+    get:
+      tags:
+      - category-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryDTO'
+              examples:
+                getCategoryVehicleClass:
+                  value:
+                  - active: true
+                    description: some text
+                    fromCategories:
+                    - {}
+                    - {}
+                    id: 6
+                    name: some text
+                  - active: true
+                    description: some text
+                    fromCategories:
+                    - {}
+                    - {}
+                    id: 17
+                    name: some text
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+      operationId: getCategoryVehicleModel
+      summary: getCategoryVehicleModel
+      description: Kayıt ekranında Araç Sınıfı dropdown bilgilerini göstermek için
+        kullanılacak.
+    parameters:
+    - examples:
+        toCategoryId:
+          value: "1"
+      name: toCategoryId
+      description: toCategoryId bilgisi sınıf ismindeki kategorinin id'sini içerecek.
+        toCategoryId=1
+      schema:
+        type: integer
+      in: query
+  /api/v1/examines-case-type:
+    get:
+      tags:
+      - examine-resource
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamineDTO'
+          description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: true
+      operationId: getAllCaseType
+      summary: getAllCaseType
+      description: kayıt oluşturma ekranındaki olay türleri dropdown bilgisini listelemek
+        için kullanılacak.
+components:
+  schemas:
+    BarcodeDTO:
+      title: BarcodeDTO
+      description: Araca ait Barcode bilgileri tutulur
+      required:
+      - barcodeNumber
+      type: object
+      properties:
+        barcodeNumber:
+          description: Barkod Seri Numarasi
+          maxLength: 50
+          minLength: 0
+          type: string
+        description:
+          description: Bir Araca Barkod eklerken kullanilacak aciklama
+          maxLength: 1000
+          minLength: 0
+          type: string
+        id:
+          format: int64
+          type: integer
+        vehicle:
+          $ref: '#/components/schemas/VehicleDTO'
+    CategoryDTO:
+      title: CategoryDTO
+      description: "Arac Sinifi, Marka, Model bilgilerinin tanimlari tutulur"
+      required:
+      - name
+      type: object
+      properties:
+        active:
+          description: Aktif yada Pasif olma durumunu gosterir.
+          type: boolean
+          example: false
+        description:
+          description: name ekranda gosterilecek
+          maxLength: 4000
+          minLength: 0
+          type: string
+        fromCategories:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryDTO'
+        id:
+          format: int64
+          type: integer
+        name:
+          description: code is kurallari icerisinde kullanilabilir
+          maxLength: 50
+          minLength: 0
+          type: string
+    ExamineCommentDTO:
+      title: ExamineCommentDTO
+      description: Her Dosyaya ait birden fazla girilebilecek yorumlar icin kullanilir.
+      type: object
+      properties:
+        comment:
+          description: Yorum bilgisi
+          maxLength: 4000
+          minLength: 0
+          type: string
+        commentDate:
+          format: date-time
+          description: Yorum Yazma tarihi
+          type: string
+        examine:
+          $ref: '#/components/schemas/ExamineDTO'
+        id:
+          format: int64
+          type: integer
+    ExamineDTO:
+      title: ExamineDTO
+      type: object
+      properties:
+        caseNumber:
+          description: Olay Numarasi
+          maxLength: 50
+          minLength: 0
+          type: string
+        caseType:
+          enum:
+          - ARAC_INCELEME
+          - PARCA_INCELEME
+          type: string
+        description:
+          description: Olay ile ilgili girilen aciklama
+          maxLength: 1000
+          minLength: 0
+          type: string
+        ebysNumber:
+          description: EBYS Sayi No
+          maxLength: 50
+          minLength: 0
+          type: string
+        expertiseNumber:
+          description: Uzmanlik Numarasi
+          maxLength: 50
+          minLength: 0
+          type: string
+        id:
+          format: int64
+          type: integer
+        status:
+          description: Incelemenin hangi asamada oldugunu gosterir
+          enum:
+          - CANCEL
+          - DONE
+          - IN_PROGRESS
+          - OPEN
+          type: string
+        vehicles:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleDTO'
+    JWTToken:
+      title: JWTToken
+      type: object
+      properties:
+        id_token:
+          type: string
+    LoginVM:
+      title: LoginVM
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        password:
+          maxLength: 100
+          minLength: 4
+          type: string
+        rememberMe:
+          type: boolean
+        username:
+          maxLength: 50
+          minLength: 1
+          type: string
+    PieceDTO:
+      title: PieceDTO
+      description: Araca ait Parca bilgileri tutulur
+      required:
+      - serialNumber
+      type: object
+      properties:
+        description:
+          description: Bir Araca Parca eklenirken kullanilacak aciklama
+          maxLength: 1000
+          minLength: 0
+          type: string
+        id:
+          format: int64
+          type: integer
+        pieceType:
+          $ref: '#/components/schemas/PieceTypeDTO'
+        serialNumber:
+          description: Parca Seri Numarasi
+          maxLength: 250
+          minLength: 0
+          type: string
+        vehicle:
+          $ref: '#/components/schemas/VehicleDTO'
+    PieceTypeDTO:
+      title: PieceTypeDTO
+      required:
+      - name
+      type: object
+      properties:
+        active:
+          description: Aktif yada Pasif olma durumunu gosterir.
+          type: boolean
+          example: false
+        description:
+          description: Parca Aciklamasi
+          maxLength: 1000
+          minLength: 0
+          type: string
+        id:
+          format: int64
+          type: integer
+        name:
+          description: "Parca Adi. SASI_NO, MOTOR_NO vb.."
+          maxLength: 250
+          minLength: 0
+          type: string
+    UserVM:
+      title: UserVM
+      type: object
+      properties:
+        activated:
+          type: boolean
+        authorities:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        login:
+          type: string
+    VehicleDTO:
+      title: VehicleDTO
+      description: Arac bilgileri tutulur.
+      type: object
+      properties:
+        categories:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryDTO'
+        description:
+          description: Arac kaydi yapilirken girilen aciklama
+          maxLength: 1000
+          minLength: 0
+          type: string
+        id:
+          format: int64
+          type: integer
+        year:
+          format: int32
+          description: Arac Model Yili Bilgisi tutulur.
+          type: integer
+    DashboardSummaryVM:
+      title: Root Type for DashboardSummaryVm
+      description: ""
+      type: object
+      properties:
+        countVehicleData:
+          format: int32
+          type: integer
+        countPieces:
+          format: int32
+          type: integer
+        countDataSource:
+          format: int32
+          type: integer
+      example:
+        countVehicleData: 1235
+        countPieces: 1052
+        countDataSource: 1165
+    DashboardGraphVM:
+      description: 'Aylara göre mi dönecek günlere göre mi '
+      type: object
+      example:
+        monthsValue:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+    DashboardDateCounterVM:
+      title: Root Type for DashboardDateCounterVM
+      description: ""
+      type: object
+      properties:
+        dailyExamineCount:
+          format: int32
+          type: integer
+        weeklyExamineCount:
+          format: int32
+          type: integer
+        monthlyExamineCount:
+          format: int32
+          type: integer
+      example:
+        dailyExamineCount: 1235
+        weeklyExamineCount: 8645
+        monthlyExamineCount: 34580
+    DashboardDataCardVM:
+      title: Root Type for DashboardDataCardVM
+      description: ""
+      type: object
+      properties:
+        brand:
+          type: string
+        dataCardCount:
+          type: integer
+        lastModifiedDate:
+          format: date
+          type: string
+      example:
+        brand: Opel
+        dataCardCount: 212394
+        lastModifiedDate: 12.01.2020
+    DataCardDetailsVM:
+      title: Root Type for DataCardDetailsVM
+      description: ""
+      type: object
+      properties:
+        pieceDTO:
+          description: ""
+          type: array
+          items:
+            $ref: '#/components/schemas/PieceDTO'
+        barcodeDTO:
+          description: ""
+          type: array
+          items:
+            $ref: '#/components/schemas/BarcodeDTO'
+        examineDTO:
+          $ref: '#/components/schemas/ExamineDTO'
+          description: ""
+      example:
+        pieceDTO:
+        - description: some text
+          id: 90
+          pieceType:
+            active: true
+            description: some text
+            id: 93
+            name: some text
+          serialNumber: some text
+          vehicle:
+            categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 92
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 75
+              name: some text
+            description: some text
+            id: 75
+            year: 72
+        - description: some text
+          id: 73
+          pieceType:
+            active: true
+            description: some text
+            id: 68
+            name: some text
+          serialNumber: some text
+          vehicle:
+            categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 12
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 34
+              name: some text
+            description: some text
+            id: 86
+            year: 47
+        barcodeDTO:
+        - barcodeNumber: some text
+          description: some text
+          id: 20
+          vehicle:
+            categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 53
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 96
+              name: some text
+            description: some text
+            id: 63
+            year: 87
+        - barcodeNumber: some text
+          description: some text
+          id: 99
+          vehicle:
+            categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 22
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 97
+              name: some text
+            description: some text
+            id: 92
+            year: 50
+        examineDTO:
+          caseNumber: some text
+          caseType: ARAC_INCELEME
+          description: some text
+          ebysNumber: some text
+          expertiseNumber: some text
+          id: 88
+          status: OPEN
+          vehicles:
+          - categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 65
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 33
+              name: some text
+            description: some text
+            id: 8
+            year: 9
+          - categories:
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 83
+              name: some text
+            - active: true
+              description: some text
+              fromCategories:
+              - {}
+              - {}
+              id: 24
+              name: some text
+            description: some text
+            id: 72
+            year: 1
+tags:
+- name: account-resource
+  description: Account Resource
+- name: barcode-resource
+  description: Barcode Resource
+- name: category-resource
+  description: Category Resource
+- name: examine-comment-resource
+  description: Examine Comment Resource
+- name: examine-resource
+  description: Examine Resource
+- name: piece-resource
+  description: Piece Resource
+- name: piece-type-resource
+  description: Piece Type Resource
+- name: user-jwt-controller
+  description: User JWT Controller
+- name: vehicle-resource
+  description: Vehicle Resource
