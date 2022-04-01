@@ -29,6 +29,7 @@ class ComponentsResolver:
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
     consolidate_count = 0
+    self_ref: t.List[str] = []
 
     @classmethod
     def init(cls):
@@ -40,6 +41,7 @@ class ComponentsResolver:
         for elt in ComponentType:
             cls.with_ref[elt.name] = {}
             cls.without_ref[elt.name] = {}
+            cls.self_ref = []
 
     @staticmethod
     def _validate_references_format(
@@ -51,8 +53,9 @@ class ComponentsResolver:
             if not ref.startswith("#/"):
                 raise ValueError(f"reference {ref} has invalid format")
 
+
     @classmethod
-    def _validate_self_references(
+    def _list_self_references(
         cls,
         *,
         key: str,
@@ -62,10 +65,7 @@ class ComponentsResolver:
         for ref in references:
             ref_type, ref_key = _get_ref_data(ref=ref)
             if ref_type == component_type and ref_key == key:
-                raise NotImplementedError(
-                    f"Reference {component_type.name}:{key} referencing itself. "
-                    f"Self referencement is forbidden"
-                )
+                cls.self_ref.append(ref)
 
     @classmethod
     def _find_ref(
@@ -96,7 +96,7 @@ class ComponentsResolver:
             references=references,
         )
 
-        cls._validate_self_references(
+        cls._list_self_references(
             key=key,
             component_type=component_type,
             references=references,
@@ -151,9 +151,16 @@ class ComponentsResolver:
     def _references_availables(
         cls,
         references: t.List[str],
+        component_type: ComponentType,
+        key: str,
     ) -> bool:
+
         for ref in references:
             ref_type, ref_key = _get_ref_data(ref=ref)
+
+            if ref_type == component_type and key == ref_key:
+                continue
+
             if not cls.without_ref[ref_type.name].get(ref_key):
                 # print(f"ref unavailable: {ref}")
                 return False
@@ -170,8 +177,14 @@ class ComponentsResolver:
         with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
 
         for key, values in with_ref_copy.items():
+            references = values["references"]
+
             # print(f"Trying to create {component_type.name}:{key}")
-            if not cls._references_availables(references=values["references"]):
+            if not cls._references_availables(
+                references=references,
+                key=key,
+                component_type=component_type,
+            ):
                 # print(f"Not all references ready for:{component_type.name}:{key}")
                 # print("next...")
                 continue
@@ -197,7 +210,7 @@ class ComponentsResolver:
 
         components = raw_api.get("components")
         if not components:
-            print("No components in this api")
+            # print("No components in this api")
             return
 
         for elt in ComponentType:
@@ -212,7 +225,10 @@ class ComponentsResolver:
             component = components.get(elt.value)
             if component:
                 cls._consolidate_components(component_type=elt)
-        print(cls.consolidate_count)
+            # print(
+            #     f"Recursive consolidate count for component {elt.name}:"
+            #     f"{cls.consolidate_count}"
+            # )
 
 
 class RefModel(OpenApiBaseModel):
@@ -233,6 +249,9 @@ class RefModel(OpenApiBaseModel):
         # print("====== VALIDATE ROOT ======")
         # print(f"ref:{ref}")
         if ref:
+            # Avoir self reference here
+            if ref in ComponentsResolver.self_ref:
+                return values
             # load reference from ComponentsResolver
             ref_type, ref_key = _get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
@@ -246,19 +265,6 @@ class RefModel(OpenApiBaseModel):
 
             return ref_found
         return values
-
-    #     # check spec extension:
-    #     native_attr = set(cls.__fields__.keys())  # all class attr key
-    #     setted_attr = [k for k, v in values.items() if v]  # setted attr key
-    #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
-    #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
-    #     for attr in clean_extra_attr:
-    #         if not attr.startswith("x-"):
-    #             raise ValueError(
-    #                 f"Schema extension:{attr} must be conform to openapi "
-    #                 f"specication (^x-)"
-    #             )
-    #     return values
 
 
 class BaseModelForbid(RefModel):
@@ -400,7 +406,7 @@ class Schema(BaseModelAllow):
     deprecated: t.Optional[str]
 
 
-class Example(BaseModelForbid):
+class Example(BaseModelAllow):
     summary: t.Optional[str]
     description: t.Optional[str]
     value: t.Any
@@ -566,7 +572,7 @@ class PathItem(BaseModelAllow):
     options: t.Optional[Operation]
     trace: t.Optional[Operation]
     servers: t.Optional[t.List[Server]]
-    parameters: t.Optional[t.Any]
+    parameters: t.Optional[t.List[Parameter]]
 
 
 Operation.update_forward_refs()

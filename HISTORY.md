@@ -1,9 +1,9 @@
 # ????
 
-- References finder now used jsonpath
-- components consolidation optimization
-- self referencement forbidden
-- reference format validation is now done during the initial listing
+- References finder now based on jsonpath
+- Components consolidation optimization
+- If a component self-reference itself, it will not be interpolated (to avoid infinite recursive loop hell)
+- Reference format validation is now done during the initial reference listing
 - Minor fix
 
 # v0.2.1 (2022-03-31)
