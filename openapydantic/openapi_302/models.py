@@ -7,12 +7,12 @@ from jsonpath_ng import parse
 
 import openapydantic
 
-Field = pydantic.Field
-
-OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 ComponentType = openapydantic.common.ComponentType
 HTTPStatusCode = openapydantic.common.HTTPStatusCode
 MediaType = openapydantic.common.MediaType
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
+
+Field = pydantic.Field
 
 
 class ComponentsResolver:
@@ -20,13 +20,13 @@ class ComponentsResolver:
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
     consolidate_count = 0
-    find_ref_count = 0
 
     @classmethod
     def init(cls):
         cls.with_ref = {}
         cls.without_ref = {}
         cls.ref_find = False
+        cls.consolidate_count = 0
 
         for elt in ComponentType:
             cls.with_ref[elt.name] = {}
@@ -121,6 +121,10 @@ class ComponentsResolver:
         # print(f"with_ref remaining:{len(with_ref_copy)}")
         # print(f"remaining:{[k for k in with_ref_copy]}")
         for key, values in with_ref_copy.items():
+            if not all(
+                [ref for ref in values["references"] if ref in cls.without_ref.keys()]
+            ):
+                continue
             cls.ref_find = False
             # print(f"INFO:{key}:{values}")
 
@@ -153,7 +157,7 @@ class ComponentsResolver:
         cls,
         *,
         raw_api: t.Dict[str, t.Any],
-    ):
+    ) -> None:
         cls.init()
 
         components = raw_api.get("components")
@@ -173,6 +177,7 @@ class ComponentsResolver:
             component = components.get(elt.value)
             if component:
                 cls._consolidate_components(component_type=elt)
+        print(cls.consolidate_count)
 
 
 class RefModel(OpenApiBaseModel):
@@ -200,7 +205,6 @@ class RefModel(OpenApiBaseModel):
         # print("====== VALIDATE ROOT ======")
         # print(f"ref:{ref}")
         if ref:
-            # breakpoint()
             # load reference from ComponentsResolver
             ref_type, ref_key = cls._get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
@@ -678,35 +682,3 @@ class Tag(BaseModelForbid):
         None,
         alias="externalDocs",
     )
-
-
-AllClass = t.Union[
-    Contact,
-    Encoding,
-    Example,
-    ExternalDocs,
-    Header,
-    Info,
-    License,
-    Link,
-    MediaTypeObject,
-    OAuthFlowAuthorizationCode,
-    OAuthFlowClientCredentials,
-    OAuthFlowImplicit,
-    OAuthFlowPassword,
-    OAuthFlows,
-    Operation,
-    Parameter,
-    PathItem,
-    RequestBody,
-    Response,
-    Schema,
-    SecuritySchemeApiKey,
-    SecuritySchemeHttp,
-    SecuritySchemeOAuth2,
-    SecuritySchemeOpenIdConnect,
-    Server,
-    ServerVariables,
-    Tag,
-    XML,
-]

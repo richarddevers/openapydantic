@@ -5,7 +5,14 @@ import typing as t
 import pydantic
 
 from openapydantic import common
-from openapydantic.openapi_302 import models
+from openapydantic.openapi_302.models import Components
+from openapydantic.openapi_302.models import ComponentsResolver
+from openapydantic.openapi_302.models import ExternalDocs
+from openapydantic.openapi_302.models import Info
+from openapydantic.openapi_302.models import Paths
+from openapydantic.openapi_302.models import SecurityRequirement
+from openapydantic.openapi_302.models import Server
+from openapydantic.openapi_302.models import Tag
 
 Field = pydantic.Field
 
@@ -15,14 +22,14 @@ OpenApiBaseModel = common.OpenApiBaseModel
 
 class OpenApi302(OpenApiBaseModel):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
-    components: t.Optional[models.Components]
+    components: t.Optional[Components]
     openapi: OpenApiVersion
-    info: models.Info
-    paths: models.Paths
-    tags: t.Optional[t.List[models.Tag]]
-    servers: t.Optional[t.List[models.Server]]
-    security: t.Optional[t.List[models.SecurityRequirement]]
-    external_docs: t.Optional[models.ExternalDocs] = Field(
+    info: Info
+    paths: Paths
+    tags: t.Optional[t.List[Tag]]
+    servers: t.Optional[t.List[Server]]
+    security: t.Optional[t.List[SecurityRequirement]]
+    external_docs: t.Optional[ExternalDocs] = Field(
         None,
         alias="externalDocs",
     )
@@ -37,12 +44,12 @@ def load_api(
     raw_api: t.Dict[str, t.Any],
     clean_memory: bool = True,
 ) -> OpenApi302:
-    models.ComponentsResolver.resolve(raw_api=raw_api)
+    ComponentsResolver.resolve(raw_api=raw_api)
     data: t.Dict[str, t.Any] = {
         **raw_api,
         "raw_api": raw_api,
     }
     api = OpenApi302(**data)
     if clean_memory:
-        models.ComponentsResolver.init()
+        ComponentsResolver.init()
     return api
