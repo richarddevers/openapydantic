@@ -15,6 +15,15 @@ OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 Field = pydantic.Field
 
 
+def _get_ref_data(
+    ref: str,
+) -> t.Tuple[ComponentType, str]:
+    ref_split = ref.split("/")  # format #/components/schemas/Pet
+    ref_type = ComponentType(ref_split[2])
+    ref_key = ref_split[-1]
+    return ref_type, ref_key
+
+
 class ComponentsResolver:
     with_ref: t.Dict[str, t.Any] = {}
     without_ref: t.Dict[str, t.Any] = {}
@@ -42,15 +51,6 @@ class ComponentsResolver:
             if not ref.startswith("#/"):
                 raise ValueError(f"reference {ref} has invalid format")
 
-    @staticmethod
-    def _get_ref_data(
-        ref: str,
-    ) -> t.Tuple[ComponentType, str]:
-        ref_split = ref.split("/")  # format #/components/schemas/Pet
-        ref_type = ComponentType(ref_split[2])
-        ref_key = ref_split[-1]
-        return ref_type, ref_key
-
     @classmethod
     def _validate_self_references(
         cls,
@@ -60,9 +60,9 @@ class ComponentsResolver:
         references: t.List[str],
     ) -> None:
         for ref in references:
-            ref_type, ref_key = cls._get_ref_data(ref=ref)
+            ref_type, ref_key = _get_ref_data(ref=ref)
             if ref_type == component_type and ref_key == key:
-                raise ValueError(
+                raise NotImplementedError(
                     f"Reference {component_type.name}:{key} referencing itself. "
                     f"Self referencement is forbidden"
                 )
@@ -148,48 +148,42 @@ class ComponentsResolver:
         return component.as_clean_dict()
 
     @classmethod
+    def _references_availables(
+        cls,
+        references: t.List[str],
+    ) -> bool:
+        for ref in references:
+            ref_type, ref_key = _get_ref_data(ref=ref)
+            if not cls.without_ref[ref_type.name].get(ref_key):
+                # print(f"ref unavailable: {ref}")
+                return False
+            # print(f"ref available: {ref}")
+        return True
+
+    @classmethod
     def _consolidate_components(
         cls,
         component_type: ComponentType,
     ) -> None:
-        # print("===========")
         cls.consolidate_count = cls.consolidate_count + 1
         component_dict = {}
         with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
-        # print(f"INFO NEW CONSOLIDATE")
-        # print(f"with_ref remaining:{len(with_ref_copy)}")
-        # print(f"remaining:{[k for k in with_ref_copy]}")
-        for key, values in with_ref_copy.items():
-            # breakpoint()
-            # if not all(
-            #     [ref for ref in values["references"] if ref in cls.without_ref.keys()]
-            # ):
-            #     continue
-            cls.ref_find = False
-            # print(f"INFO:{key}:{values}")
 
-            component_dict = ComponentsResolver._get_component_object(
+        for key, values in with_ref_copy.items():
+            # print(f"Trying to create {component_type.name}:{key}")
+            if not cls._references_availables(references=values["references"]):
+                # print(f"Not all references ready for:{component_type.name}:{key}")
+                # print("next...")
+                continue
+
+            component_dict = cls._get_component_object(
                 component_type=component_type,
                 values=values["values"],
             )
 
-            cls._search_component_for_ref(
-                key=key,
-                value=component_dict,  # type: ignore
-                component_type=component_type,
-            )
-            # print(cls.ref_find)
-            # print(key)
+            cls.without_ref[component_type.name][key] = component_dict
+            del cls.with_ref[component_type.name][key]
 
-            if cls.ref_find:
-                # print(f"BAD INFO:still ref in:{key}")
-                cls.with_ref[component_type.name][key]["values"] = component_dict
-            else:
-                # print(f"GOOD INFO:adding without ref:{key}")
-                cls.without_ref[component_type.name][key] = component_dict
-                del cls.with_ref[component_type.name][key]
-
-        # breakpoint()
         if len(cls.with_ref[component_type.name]):
             cls._consolidate_components(component_type=component_type)
 
@@ -227,13 +221,6 @@ class RefModel(OpenApiBaseModel):
         alias="$ref",
     )
 
-    @staticmethod
-    def _get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
-        ref_split = ref.split("/")  # format #/components/schemas/Pet
-        ref_type = ComponentType(ref_split[2])
-        ref_key = ref_split[-1]
-        return ref_type, ref_key
-
     @pydantic.root_validator(
         pre=True,
         allow_reuse=True,
@@ -247,7 +234,7 @@ class RefModel(OpenApiBaseModel):
         # print(f"ref:{ref}")
         if ref:
             # load reference from ComponentsResolver
-            ref_type, ref_key = cls._get_ref_data(ref)
+            ref_type, ref_key = _get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
             # print(f"ref_key:{ref_key}")
             ref_found: t.Dict[str, t.Any] = ComponentsResolver.without_ref[
@@ -255,9 +242,7 @@ class RefModel(OpenApiBaseModel):
             ].get(ref_key)
             # print(f"ref_found:{ref_found}")
             if not ref_found:
-                return values
-                # breakpoint()
-                # raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
+                raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
             return ref_found
         return values
