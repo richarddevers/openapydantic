@@ -82,6 +82,18 @@ async def test_parse_api_ref_invalid_path_format(
         load_api_302(raw_api=raw_api)
 
 
+@pytest.mark.asyncio
+async def test_parse_api_self_reference(
+    fixture_loader: FixtureLoader,
+) -> None:
+    expected = fixture_loader.load_json(filename="self-reference.json")
+    raw_api = fixture_loader.load_yaml(filename="self-reference.yaml")
+
+    api = load_api_302(raw_api=raw_api)
+
+    assert expected == json.loads(api.as_clean_json())
+
+
 @pytest.mark.parametrize(
     "api_index",
     [(1), (2), (3), (4)],
