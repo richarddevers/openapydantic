@@ -53,7 +53,6 @@ class ComponentsResolver:
             if not ref.startswith("#/"):
                 raise ValueError(f"reference {ref} has invalid format")
 
-
     @classmethod
     def _list_self_references(
         cls,

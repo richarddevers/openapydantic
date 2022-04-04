@@ -4,7 +4,7 @@
 
 ## Python version support
 
-\>=3.8
+3.8+
 
 ## Openapi versions support
 
