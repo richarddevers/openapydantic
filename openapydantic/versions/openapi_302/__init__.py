@@ -4,20 +4,19 @@ import typing as t
 
 import pydantic
 
-from openapydantic import common
-from openapydantic.openapi_302.models import Components
-from openapydantic.openapi_302.models import ComponentsResolver
-from openapydantic.openapi_302.models import ExternalDocs
-from openapydantic.openapi_302.models import Info
-from openapydantic.openapi_302.models import Paths
-from openapydantic.openapi_302.models import SecurityRequirement
-from openapydantic.openapi_302.models import Server
-from openapydantic.openapi_302.models import Tag
+import openapydantic
+from openapydantic.versions.openapi_302.models import Components
+from openapydantic.versions.openapi_302.models import ExternalDocs
+from openapydantic.versions.openapi_302.models import Info
+from openapydantic.versions.openapi_302.models import Paths
+from openapydantic.versions.openapi_302.models import SecurityRequirement
+from openapydantic.versions.openapi_302.models import Server
+from openapydantic.versions.openapi_302.models import Tag
 
 Field = pydantic.Field
 
-OpenApiVersion = common.OpenApiVersion
-OpenApiBaseModel = common.OpenApiBaseModel
+OpenApiVersion = openapydantic.common.OpenApiVersion
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 
 
 class OpenApi302(OpenApiBaseModel):
@@ -43,7 +42,10 @@ def load_api(
     *,
     raw_api: t.Dict[str, t.Any],
 ) -> OpenApi302:
-    ComponentsResolver.resolve(raw_api=raw_api)
+    openapydantic.common.ComponentsResolver.resolve(
+        raw_api=raw_api,
+        version=OpenApiVersion.v3_0_2,
+    )
     data: t.Dict[str, t.Any] = {
         **raw_api,
         "raw_api": raw_api,

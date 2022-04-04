@@ -39,11 +39,11 @@ Depending on your preference...
 
 ### Api loader
 
-Openapydantic provide an openapi specification (a.k.a "swagger file" in version 2.X) loader.
+Openapydantic provide an openapi specification (a.k.a "swagger file") loader.
 
 This loader returns a pydantic model so you can work with your specification like a common pydantic python object.
 
-For each openapi specification version, a dedicated python class exist.
+For each openapi specification version, there's a dedicated python class.
 
 The loader can either automatically determine the class to provide...
 

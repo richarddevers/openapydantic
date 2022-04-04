@@ -3,11 +3,11 @@ import typing as t
 import yaml
 
 from openapydantic import common as common
-from openapydantic import openapi_302 as openapi_302
+from openapydantic import versions as versions
 
-OpenApi302 = openapi_302.OpenApi302
+OpenApi302 = versions.OpenApi302
 OpenApi = OpenApi302  # when antoher version will be implemented this should be a union
-load_api_302 = openapi_302.load_api
+load_api_302 = versions.load_api_302
 OpenApiVersion = common.OpenApiVersion
 
 
