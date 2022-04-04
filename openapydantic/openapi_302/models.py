@@ -3,15 +3,25 @@ import enum
 import typing as t
 
 import pydantic
+from jsonpath_ng import parse
 
 import openapydantic
 
-Field = pydantic.Field
-
-OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
 ComponentType = openapydantic.common.ComponentType
 HTTPStatusCode = openapydantic.common.HTTPStatusCode
 MediaType = openapydantic.common.MediaType
+OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
+
+Field = pydantic.Field
+
+
+def _get_ref_data(
+    ref: str,
+) -> t.Tuple[ComponentType, str]:
+    ref_split = ref.split("/")  # format #/components/schemas/Pet
+    ref_type = ComponentType(ref_split[2])
+    ref_key = ref_split[-1]
+    return ref_type, ref_key
 
 
 class ComponentsResolver:
@@ -19,47 +29,53 @@ class ComponentsResolver:
     without_ref: t.Dict[str, t.Any] = {}
     ref_find = False
     consolidate_count = 0
-    find_ref_count = 0
+    self_ref: t.List[str] = []
 
     @classmethod
     def init(cls):
         cls.with_ref = {}
         cls.without_ref = {}
         cls.ref_find = False
+        cls.consolidate_count = 0
 
         for elt in ComponentType:
             cls.with_ref[elt.name] = {}
             cls.without_ref[elt.name] = {}
+            cls.self_ref = []
 
     @staticmethod
-    def _validate_ref(ref: str) -> None:
-        if ".yaml" in ref or ".json" in ref:
-            raise NotImplementedError("File reference not implemented")
-        if not ref.startswith("#/"):
-            raise ValueError(f"reference {ref} has invalid format")
+    def _validate_references_format(
+        references: t.List[str],
+    ) -> None:
+        for ref in references:
+            if ".yaml" in ref or ".json" in ref:
+                raise NotImplementedError("File reference not implemented")
+            if not ref.startswith("#/"):
+                raise ValueError(f"reference {ref} has invalid format")
+
+    @classmethod
+    def _list_self_references(
+        cls,
+        *,
+        key: str,
+        component_type: ComponentType,
+        references: t.List[str],
+    ) -> None:
+        for ref in references:
+            ref_type, ref_key = _get_ref_data(ref=ref)
+            if ref_type == component_type and ref_key == key:
+                cls.self_ref.append(ref)
 
     @classmethod
     def _find_ref(
         cls,
         *,
         obj: t.Any,
-    ):
-        cls.find_ref_count = cls.find_ref_count + 1
-        if cls._find_ref:
-            return
-
-        if isinstance(obj, list):
-            for elt in obj:  # type: ignore
-                cls._find_ref(obj=elt)
-
-        if isinstance(obj, dict):
-            ref = obj.get("$ref")  # type: ignore
-            if ref:
-                cls._validate_ref(ref=ref)  # type: ignore
-                cls.ref_find = True
-
-            for key in obj:  # type: ignore
-                cls._find_ref(obj=obj.get(key))  # type: ignore
+    ) -> t.List[str]:
+        jsonpath_expr = parse("$..'$ref'")  # type:ignore
+        return list(
+            set([match.value for match in jsonpath_expr.find(obj)])  # type:ignore
+        )
 
     @classmethod
     def _search_component_for_ref(
@@ -69,13 +85,26 @@ class ComponentsResolver:
         value: t.Dict[str, t.Any],
         component_type: ComponentType,
     ):
-        cls.ref_find = False
-        cls._find_ref(
+        references = cls._find_ref(
             obj=value,
         )
 
-        if cls.ref_find:
-            cls.with_ref[component_type.name][key] = value
+        cls.ref_find = bool(references)
+
+        cls._validate_references_format(
+            references=references,
+        )
+
+        cls._list_self_references(
+            key=key,
+            component_type=component_type,
+            references=references,
+        )
+
+        if references:
+            cls.with_ref[component_type.name][key] = {}
+            cls.with_ref[component_type.name][key]["values"] = value
+            cls.with_ref[component_type.name][key]["references"] = references
         else:
             cls.without_ref[component_type.name][key] = value
 
@@ -118,6 +147,26 @@ class ComponentsResolver:
         return component.as_clean_dict()
 
     @classmethod
+    def _references_availables(
+        cls,
+        references: t.List[str],
+        component_type: ComponentType,
+        key: str,
+    ) -> bool:
+
+        for ref in references:
+            ref_type, ref_key = _get_ref_data(ref=ref)
+
+            if ref_type == component_type and key == ref_key:
+                continue
+
+            if not cls.without_ref[ref_type.name].get(ref_key):
+                # print(f"ref unavailable: {ref}")
+                return False
+            # print(f"ref available: {ref}")
+        return True
+
+    @classmethod
     def _consolidate_components(
         cls,
         component_type: ComponentType,
@@ -125,32 +174,27 @@ class ComponentsResolver:
         cls.consolidate_count = cls.consolidate_count + 1
         component_dict = {}
         with_ref_copy = copy.deepcopy(cls.with_ref[component_type.name])
-        # print(f"INFO NEW CONSOLIDATE")
-        # print(f"with_ref remaining:{len(with_ref_copy)}")
-        # print(f"remaining:{[k for k in with_ref_copy]}")
+
         for key, values in with_ref_copy.items():
-            cls.ref_find = False
-            # print(f"INFO:{key}:{values}")
+            references = values["references"]
 
-            component_dict = ComponentsResolver._get_component_object(
-                component_type=component_type,
-                values=values,
-            )
-            cls._search_component_for_ref(
+            # print(f"Trying to create {component_type.name}:{key}")
+            if not cls._references_availables(
+                references=references,
                 key=key,
-                value=component_dict,  # type: ignore
                 component_type=component_type,
-            )
-            # print(cls.ref_find)
-            # print(key)
+            ):
+                # print(f"Not all references ready for:{component_type.name}:{key}")
+                # print("next...")
+                continue
 
-            if cls.ref_find:
-                # print(f"BAD INFO:still ref in:{key}:{component_dict}")
-                cls.with_ref[component_type.name][key] = component_dict
-            else:
-                # print(f"GOOD INFO:adding without ref:{key}:{component_dict}")
-                cls.without_ref[component_type.name][key] = component_dict
-                del cls.with_ref[component_type.name][key]
+            component_dict = cls._get_component_object(
+                component_type=component_type,
+                values=values["values"],
+            )
+
+            cls.without_ref[component_type.name][key] = component_dict
+            del cls.with_ref[component_type.name][key]
 
         if len(cls.with_ref[component_type.name]):
             cls._consolidate_components(component_type=component_type)
@@ -160,12 +204,12 @@ class ComponentsResolver:
         cls,
         *,
         raw_api: t.Dict[str, t.Any],
-    ):
+    ) -> None:
         cls.init()
 
         components = raw_api.get("components")
         if not components:
-            print("No components in this api")
+            # print("No components in this api")
             return
 
         for elt in ComponentType:
@@ -180,6 +224,10 @@ class ComponentsResolver:
             component = components.get(elt.value)
             if component:
                 cls._consolidate_components(component_type=elt)
+            # print(
+            #     f"Recursive consolidate count for component {elt.name}:"
+            #     f"{cls.consolidate_count}"
+            # )
 
 
 class RefModel(OpenApiBaseModel):
@@ -187,13 +235,6 @@ class RefModel(OpenApiBaseModel):
         None,
         alias="$ref",
     )
-
-    @staticmethod
-    def _get_ref_data(ref: str) -> t.Tuple[ComponentType, str]:
-        ref_split = ref.split("/")  # format #/components/schemas/Pet
-        ref_type = ComponentType(ref_split[2])
-        ref_key = ref_split[-1]
-        return ref_type, ref_key
 
     @pydantic.root_validator(
         pre=True,
@@ -207,33 +248,22 @@ class RefModel(OpenApiBaseModel):
         # print("====== VALIDATE ROOT ======")
         # print(f"ref:{ref}")
         if ref:
+            # Avoir self reference here
+            if ref in ComponentsResolver.self_ref:
+                return values
             # load reference from ComponentsResolver
-            ref_type, ref_key = cls._get_ref_data(ref)
+            ref_type, ref_key = _get_ref_data(ref)
             # print(f"ref_type:{ref_type.name}")
             # print(f"ref_key:{ref_key}")
             ref_found: t.Dict[str, t.Any] = ComponentsResolver.without_ref[
                 ref_type.name
             ].get(ref_key)
-
             # print(f"ref_found:{ref_found}")
             if not ref_found:
                 raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
 
             return ref_found
         return values
-
-    #     # check spec extension:
-    #     native_attr = set(cls.__fields__.keys())  # all class attr key
-    #     setted_attr = [k for k, v in values.items() if v]  # setted attr key
-    #     extra_attr = [k for k in setted_attr if k not in native_attr]  # difference
-    #     clean_extra_attr = list(filter(lambda x: (x != "$ref"), extra_attr))
-    #     for attr in clean_extra_attr:
-    #         if not attr.startswith("x-"):
-    #             raise ValueError(
-    #                 f"Schema extension:{attr} must be conform to openapi "
-    #                 f"specication (^x-)"
-    #             )
-    #     return values
 
 
 class BaseModelForbid(RefModel):
@@ -375,7 +405,7 @@ class Schema(BaseModelAllow):
     deprecated: t.Optional[str]
 
 
-class Example(BaseModelForbid):
+class Example(BaseModelAllow):
     summary: t.Optional[str]
     description: t.Optional[str]
     value: t.Any
@@ -541,7 +571,7 @@ class PathItem(BaseModelAllow):
     options: t.Optional[Operation]
     trace: t.Optional[Operation]
     servers: t.Optional[t.List[Server]]
-    parameters: t.Optional[t.Any]
+    parameters: t.Optional[t.List[Parameter]]
 
 
 Operation.update_forward_refs()
@@ -685,35 +715,3 @@ class Tag(BaseModelForbid):
         None,
         alias="externalDocs",
     )
-
-
-AllClass = t.Union[
-    Contact,
-    Encoding,
-    Example,
-    ExternalDocs,
-    Header,
-    Info,
-    License,
-    Link,
-    MediaTypeObject,
-    OAuthFlowAuthorizationCode,
-    OAuthFlowClientCredentials,
-    OAuthFlowImplicit,
-    OAuthFlowPassword,
-    OAuthFlows,
-    Operation,
-    Parameter,
-    PathItem,
-    RequestBody,
-    Response,
-    Schema,
-    SecuritySchemeApiKey,
-    SecuritySchemeHttp,
-    SecuritySchemeOAuth2,
-    SecuritySchemeOpenIdConnect,
-    Server,
-    ServerVariables,
-    Tag,
-    XML,
-]

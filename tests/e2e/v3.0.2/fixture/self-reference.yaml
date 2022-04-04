@@ -1,0 +1,29 @@
+# my-api.yaml
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: "John Doe"
+        brother:
+          $ref: "#/components/schemas/User"
+openapi: 3.0.2
+info:
+  version: "1.0.0"
+  title: Example
+paths:
+  /user:
+    get:
+      summary: Get user
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"

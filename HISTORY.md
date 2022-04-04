@@ -1,3 +1,12 @@
+# v0.2.2 (2022-04-04)
+
+- References finder now based on jsonpath
+- Components consolidation optimization
+- If a component self-reference itself, it will not be interpolated (to avoid infinite recursive loop hell)
+- Reference format validation is now done during the initial reference listing
+- Minor fix
+- todo list
+
 # v0.2.1 (2022-03-31)
 
 - Minor fix
@@ -7,7 +16,7 @@
 - References are now interpolated into the final object
 - Unit test refactoring
 - Big documentation update
-- small fix
+- Minor fix
 
 # v0.1.2 (2022-03-25)
 

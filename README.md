@@ -4,7 +4,7 @@
 
 ## Python version support
 
-\>=3.8
+3.8+
 
 ## Openapi versions support
 
@@ -179,6 +179,56 @@ As describe in the openapi specification some attributes are fix ('paths', 'cont
 Mapping must be accessed like common dict, either by direct key loading, either using .get('*key*')
 
 Note that file reference (e.g: "#/file.yaml" are currently not supported)
+
+Reference that reference themself will not be interpolated so ...
+
+```yaml
+# my-api.yaml
+openapi: 3.0.2
+info:
+  version: "1.0.0"
+  title: Example
+paths:
+  /user:
+    get:
+      summary: Get user
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: "John Doe"
+        brother:
+          $ref: "#/components/schemas/User"
+```
+
+.. will stay the same ...
+
+```python
+import asyncio
+
+import openapydantic
+
+api = asyncio.run(
+    openapydantic.load_api(
+        file_path="my-api.yaml",
+    ),
+)
+print(api.components.schemas["User"].properties["brother"].ref)
+>> '#/components/schemas/User'
+```
 
 ### Attributes name collision
 

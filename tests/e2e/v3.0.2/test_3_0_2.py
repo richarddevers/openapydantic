@@ -3,7 +3,7 @@ import json
 import pytest
 
 import openapydantic
-from tests.unit import conftest
+from tests.e2e import conftest
 
 list_specific_fixtures_version = conftest.list_specific_fixtures_version
 SpecVersion = conftest.SpecVersion
@@ -82,13 +82,26 @@ async def test_parse_api_ref_invalid_path_format(
         load_api_302(raw_api=raw_api)
 
 
+@pytest.mark.asyncio
+async def test_parse_api_self_reference(
+    fixture_loader: FixtureLoader,
+) -> None:
+    expected = fixture_loader.load_json(filename="self-reference.json")
+    raw_api = fixture_loader.load_yaml(filename="self-reference.yaml")
+
+    api = load_api_302(raw_api=raw_api)
+
+    assert expected == json.loads(api.as_clean_json())
+
+
 @pytest.mark.parametrize(
     "api_index",
     [(1), (2), (3), (4)],
 )
 @pytest.mark.asyncio
 async def test_reference_interpolation_x(
-    fixture_loader: FixtureLoader, api_index: int
+    fixture_loader: FixtureLoader,
+    api_index: int,
 ) -> None:
     raw_api = fixture_loader.load_yaml(filename=f"components_{api_index}.yaml")
     expected = fixture_loader.load_json(filename=f"components_{api_index}.json")
@@ -96,3 +109,30 @@ async def test_reference_interpolation_x(
     api = load_api_302(raw_api=raw_api)
 
     assert expected == json.loads(api.as_clean_json())
+
+
+# @pytest.mark.asyncio
+# async def test_reference_interpolation_x_index(fixture_loader: FixtureLoader) -> None:
+#     raw_api = fixture_loader.load_yaml(filename="components_4.yaml")
+#     expected = fixture_loader.load_json(filename="components_4.json")
+
+#     api = load_api_302(raw_api=raw_api)
+#     assert expected == json.loads(api.as_clean_json())
+
+
+# @pytest.mark.asyncio
+# async def test_oneshot() -> None:
+#     file_path = (
+#         "/workspaces/openapydantic/tests/e2e/v3.0.1/fixture/ok/self-reference.yaml"
+#     )
+#     raw_api = await openapydantic.load_spec(file_path=file_path)
+#     api = load_api_302(raw_api=raw_api)
+#     print(api.as_clean_json())
+
+
+# @pytest.mark.asyncio
+# async def test_oneshot(
+#     fixture_loader: FixtureLoader,
+# ) -> None:
+#     raw_api = fixture_loader.load_yaml(filename=f"components_4.yaml")
+#     load_api_302(raw_api=raw_api)
