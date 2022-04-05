@@ -4,31 +4,26 @@ import typing as t
 
 import pydantic
 
-import openapydantic
-from openapydantic.versions.openapi_302.models import Components
-from openapydantic.versions.openapi_302.models import ExternalDocs
-from openapydantic.versions.openapi_302.models import Info
-from openapydantic.versions.openapi_302.models import Paths
-from openapydantic.versions.openapi_302.models import SecurityRequirement
-from openapydantic.versions.openapi_302.models import Server
-from openapydantic.versions.openapi_302.models import Tag
+from openapydantic import common
+from openapydantic import resolver
+from openapydantic.versions.openapi_302 import models
 
 Field = pydantic.Field
 
-OpenApiVersion = openapydantic.common.OpenApiVersion
-OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
+OpenApiVersion = common.OpenApiVersion
+OpenApiBaseModel = common.OpenApiBaseModel
 
 
 class OpenApi302(OpenApiBaseModel):
     __version__: t.ClassVar[OpenApiVersion] = OpenApiVersion.v3_0_2
-    components: t.Optional[Components]
+    components: t.Optional[models.Components]
     openapi: OpenApiVersion
-    info: Info
-    paths: Paths
-    tags: t.Optional[t.List[Tag]]
-    servers: t.Optional[t.List[Server]]
-    security: t.Optional[t.List[SecurityRequirement]]
-    external_docs: t.Optional[ExternalDocs] = Field(
+    info: models.Info
+    paths: models.Paths
+    tags: t.Optional[t.List[models.Tag]]
+    servers: t.Optional[t.List[models.Server]]
+    security: t.Optional[t.List[models.SecurityRequirement]]
+    external_docs: t.Optional[models.ExternalDocs] = Field(
         None,
         alias="externalDocs",
     )
@@ -42,7 +37,7 @@ def load_api(
     *,
     raw_api: t.Dict[str, t.Any],
 ) -> OpenApi302:
-    openapydantic.common.ComponentsResolver.resolve(
+    resolver.ComponentsResolver.resolve(
         raw_api=raw_api,
         version=OpenApiVersion.v3_0_2,
     )

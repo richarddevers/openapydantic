@@ -1,11 +1,13 @@
 from pytest_mock import MockerFixture
 
-import openapydantic
+from openapydantic import common
+from openapydantic import resolver
+from openapydantic import versions
 from tests.unit import conftest
 
 FixtureLoader = conftest.FixtureLoader
-ComponentType = openapydantic.common.ComponentType
-openapi_302 = openapydantic.openapi_302
+ComponentType = common.ComponentType
+openapi_302 = versions.openapi_302
 
 
 def test_load_api_ok(
@@ -13,7 +15,7 @@ def test_load_api_ok(
     fixture_loader: FixtureLoader,
 ) -> None:
     m_resolver = mocker.spy(
-        openapi_302.ComponentsResolver,
+        resolver.ComponentsResolver,
         "resolve",
     )
     raw_api = fixture_loader.load_yaml("simple.yaml")
@@ -24,4 +26,5 @@ def test_load_api_ok(
 
     m_resolver.assert_called_once_with(
         raw_api=raw_api,
+        version=common.OpenApiVersion.v3_0_2,
     )

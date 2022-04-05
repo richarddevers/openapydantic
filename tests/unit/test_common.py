@@ -4,9 +4,9 @@ import jsonpath_ng
 import pytest
 from pytest_mock import MockerFixture
 
-import openapydantic
+from openapydantic import common
+from openapydantic import resolver
 
-common = openapydantic.common
 ComponentType = common.ComponentType
 OpenApiBaseModel = common.OpenApiBaseModel
 
@@ -46,7 +46,7 @@ def test_as_clean_dict_default() -> None:
 def test_get_ref_data_ok() -> None:
     ref = "#/components/schemas/Pet"
 
-    ref_type, ref_key = common.get_ref_data(
+    ref_type, ref_key = resolver.get_ref_data(
         ref=ref,
     )
 
@@ -58,7 +58,7 @@ def test_get_ref_data_ko() -> None:
     ref = "invalid-ref"
 
     with pytest.raises(ValueError):
-        common.get_ref_data(
+        resolver.get_ref_data(
             ref=ref,
         )
 
@@ -67,7 +67,7 @@ def test_validate_references_format_ko_json() -> None:
     references = ["#/Pet.json"]
 
     with pytest.raises(NotImplementedError):
-        common.validate_references_format(
+        resolver.validate_references_format(
             references=references,
         )
 
@@ -76,7 +76,7 @@ def test_validate_references_format_ko_yaml() -> None:
     references = ["#/Pet.yaml"]
 
     with pytest.raises(NotImplementedError):
-        common.validate_references_format(
+        resolver.validate_references_format(
             references=references,
         )
 
@@ -85,7 +85,7 @@ def test_validate_references_format_ko_format() -> None:
     references = ["schemas/Pet/"]
 
     with pytest.raises(ValueError):
-        common.validate_references_format(
+        resolver.validate_references_format(
             references=references,
         )
 
@@ -103,7 +103,7 @@ def test_find_ref(
         "parse",
     )
 
-    references = common.find_ref(
+    references = resolver.find_ref(
         obj=obj,
     )
 

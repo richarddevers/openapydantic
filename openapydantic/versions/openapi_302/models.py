@@ -3,16 +3,41 @@ import typing as t
 
 import pydantic
 
-import openapydantic
+from openapydantic import common
+from openapydantic import resolver
 
-HTTPStatusCode = openapydantic.common.HTTPStatusCode
-MediaType = openapydantic.common.MediaType
-OpenApiBaseModel = openapydantic.common.OpenApiBaseModel
-reference_interpolation = openapydantic.common.reference_interpolation
-ComponentType = openapydantic.common.ComponentType
-
+HTTPStatusCode = common.HTTPStatusCode
+MediaType = common.MediaType
+OpenApiBaseModel = common.OpenApiBaseModel
+ComponentType = common.ComponentType
 
 Field = pydantic.Field
+
+
+def reference_interpolation(
+    values: t.Dict[str, t.Any],
+) -> t.Dict[str, t.Any]:
+    ref = values.get("$ref")
+    # print("====== VALIDATE ROOT ======")
+    # print(f"ref:{ref}")
+    if ref:
+        # Avoir self reference here
+        if ref in resolver.ComponentsResolver.self_ref:
+            return values
+        ref_type, ref_key = resolver.get_ref_data(
+            ref=ref,
+        )
+        # print(f"ref_type:{ref_type.name}")
+        # print(f"ref_key:{ref_key}")
+        ref_found: t.Dict[str, t.Any] = resolver.ComponentsResolver.without_ref[
+            ref_type.name
+        ].get(ref_key)
+        # print(f"ref_found:{ref_found}")
+        if not ref_found:
+            raise ValueError(f"Reference not found:{ref_type}/{ref_key}")
+
+        return ref_found
+    return values
 
 
 class RefModel(OpenApiBaseModel):
@@ -483,27 +508,3 @@ class Tag(BaseModelForbid):
         None,
         alias="externalDocs",
     )
-
-
-def get_component_object(
-    component_type: ComponentType,
-    values: t.Dict[str, t.Any],
-) -> t.Dict[str, t.Any]:
-    if component_type == ComponentType.schemas:
-        component = Schema(**values)
-    elif component_type == ComponentType.headers:
-        component = Header(**values)
-    elif component_type == ComponentType.responses:
-        component = Response(**values)
-    elif component_type == ComponentType.parameters:
-        component = Parameter(**values)
-    elif component_type == ComponentType.examples:
-        component = Example(**values)
-    elif component_type == ComponentType.request_bodies:
-        component = RequestBody(**values)
-    elif component_type == ComponentType.links:
-        component = Link(**values)
-    elif component_type == ComponentType.callbacks:
-        component = PathItem(**values)
-
-    return component.as_clean_dict()

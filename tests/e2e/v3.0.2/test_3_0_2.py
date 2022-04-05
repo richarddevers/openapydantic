@@ -3,16 +3,18 @@ import json
 import pytest
 
 import openapydantic
+from openapydantic import common
+from openapydantic import versions
 from tests.e2e import conftest
 
 list_specific_fixtures_version = conftest.list_specific_fixtures_version
 SpecVersion = conftest.SpecVersion
 FixtureLoader = conftest.FixtureLoader
 FixturesVersion = conftest.FixturesVersion
-OpenApiVersion = openapydantic.OpenApiVersion
+OpenApiVersion = common.OpenApiVersion
 
 load_api = openapydantic.load_api
-load_api_302 = openapydantic.openapi_302.load_api
+load_api_302 = versions.openapi_302.load_api
 
 fixtures_v3_0_0 = list_specific_fixtures_version(version=SpecVersion.v3_0_0)
 fixtures_v3_0_1 = list_specific_fixtures_version(version=SpecVersion.v3_0_1)

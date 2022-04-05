@@ -1,8 +1,8 @@
 import typing as t
 
-import openapydantic
+from openapydantic import resolver
 
-ComponentsResolver = openapydantic.common.ComponentsResolver
+ComponentsResolver = resolver.ComponentsResolver
 
 
 def test_components_resolver_init() -> None:
