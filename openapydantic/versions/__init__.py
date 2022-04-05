@@ -11,6 +11,7 @@ OpenApi = (
 
 
 async def load_spec(
+    *,
     file_path: str,
     mode: t.Optional[str] = None,
 ) -> t.Dict[t.Any, t.Any]:

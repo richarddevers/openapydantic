@@ -5,7 +5,7 @@ import pytest
 import openapydantic
 from openapydantic import common
 from openapydantic import versions
-from tests.e2e import conftest
+from tests.integration import conftest
 
 list_specific_fixtures_version = conftest.list_specific_fixtures_version
 SpecVersion = conftest.SpecVersion
