@@ -60,6 +60,7 @@ def raw_api() -> t.Dict[str, t.Any]:
 @pytest.mark.asyncio
 async def test_load_spec_ok(
     mocker: MockerFixture,
+    raw_api: t.Dict[str, t.Any],
 ) -> None:
     m_open = mocker.spy(builtins, "open")
     m_yaml = mocker.spy(yaml, "safe_load")
@@ -70,6 +71,7 @@ async def test_load_spec_ok(
 
     m_open.assert_called_once_with(file_path, "r")
     m_yaml.assert_called_once_with(m_open.spy_return)
+    assert result == raw_api
 
 
 @pytest.mark.asyncio
@@ -87,7 +89,7 @@ async def test_load_api_ok(
         "load_api",
     )
 
-    result = await versions.load_api(
+    await versions.load_api(
         file_path="fake",
         version=common.OpenApiVersion.v3_0_2,
     )
