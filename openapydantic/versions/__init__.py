@@ -10,34 +10,6 @@ OpenApi = (
 )  # will be a tuple when there'll be more than one version
 
 
-def get_component_object_proxy(
-    component_type: common.ComponentType,
-    values: t.Dict[str, t.Any],
-    version: common.OpenApiVersion,
-) -> t.Dict[str, t.Any]:
-    if version != common.OpenApiVersion.v3_0_2:
-        raise NotImplementedError()
-
-    if component_type == common.ComponentType.schemas:
-        component = openapi_302.models.Schema(**values)
-    elif component_type == common.ComponentType.headers:
-        component = openapi_302.models.Header(**values)
-    elif component_type == common.ComponentType.responses:
-        component = openapi_302.models.Response(**values)
-    elif component_type == common.ComponentType.parameters:
-        component = openapi_302.models.Parameter(**values)
-    elif component_type == common.ComponentType.examples:
-        component = openapi_302.models.Example(**values)
-    elif component_type == common.ComponentType.request_bodies:
-        component = openapi_302.models.RequestBody(**values)
-    elif component_type == common.ComponentType.links:
-        component = openapi_302.models.Link(**values)
-    elif component_type == common.ComponentType.callbacks:
-        component = openapi_302.models.PathItem(**values)
-
-    return component.as_clean_dict()
-
-
 async def load_spec(
     file_path: str,
     mode: t.Optional[str] = None,
@@ -72,3 +44,16 @@ async def load_api(
         return openapi_302.load_api(raw_api=raw_api)
 
     raise NotImplementedError(f"Unsupported openapi version:{spec_version}")
+
+
+def get_component_object_proxy(
+    component_type: common.ComponentType,
+    values: t.Dict[str, t.Any],
+    version: common.OpenApiVersion,
+) -> t.Dict[str, t.Any]:
+    if version == common.OpenApiVersion.v3_0_2:
+        return openapi_302.get_component_object(
+            component_type=component_type,
+            values=values,
+        )
+    raise NotImplementedError()

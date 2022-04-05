@@ -48,3 +48,28 @@ def load_api(
     api = OpenApi302(**data)
 
     return api
+
+
+def get_component_object(
+    component_type: common.ComponentType,
+    values: t.Dict[str, t.Any],
+) -> t.Dict[str, t.Any]:
+    if component_type == common.ComponentType.schemas:
+        component = models.Schema(**values)
+    elif component_type == common.ComponentType.headers:
+        component = models.Header(**values)
+    elif component_type == common.ComponentType.responses:
+        component = models.Response(**values)
+    elif component_type == common.ComponentType.parameters:
+        component = models.Parameter(**values)
+    elif component_type == common.ComponentType.examples:
+        component = models.Example(**values)
+    elif component_type == common.ComponentType.request_bodies:
+        component = models.RequestBody(**values)
+    elif component_type == common.ComponentType.links:
+        component = models.Link(**values)
+    elif component_type == common.ComponentType.callbacks:
+        component = models.PathItem(**values)
+    else:
+        raise NotImplementedError()
+    return component.as_clean_dict()
