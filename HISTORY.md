@@ -1,3 +1,8 @@
+# v0.2.2 (2022-04-06)
+
+- folder restructuration
+- split integration and unit test
+
 # v0.2.2 (2022-04-04)
 
 - References finder now based on jsonpath
