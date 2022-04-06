@@ -76,9 +76,11 @@ class ComponentsResolver:
         references: t.List[str],
     ) -> None:
         for ref in references:
+
             ref_type, ref_key = get_ref_data(
                 ref=ref,
             )
+
             if ref_type == component_type and ref_key == key:
                 cls.self_ref.append(ref)
 

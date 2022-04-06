@@ -6,6 +6,7 @@ from openapydantic import common
 from openapydantic import resolver
 
 ComponentType = common.ComponentType
+ComponentsResolver = resolver.ComponentsResolver
 
 
 def test_get_ref_data_ok() -> None:
@@ -74,3 +75,32 @@ def test_find_ref(
 
     m_parse.assert_called_once_with("$..'$ref'")
     assert references.sort() == ["#/ref-1", "#/ref-2"].sort()
+
+
+def test_components_resolver_list_self_reference_ok() -> None:
+    key = "Pet"
+    component_type = ComponentType.schemas
+    references = ["#/components/schemas/Pet"]
+
+    ComponentsResolver._list_self_references(
+        key=key,
+        component_type=component_type,
+        references=references,
+    )
+
+    assert ComponentsResolver.self_ref == references
+    ComponentsResolver.init()
+
+
+def test_components_resolver_list_self_reference_ok_no_ref() -> None:
+    key = "Pet"
+    component_type = ComponentType.schemas
+    references = ["#/components/schemas/Hola"]
+
+    ComponentsResolver._list_self_references(
+        key=key,
+        component_type=component_type,
+        references=references,
+    )
+
+    assert ComponentsResolver.self_ref == []
