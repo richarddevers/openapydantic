@@ -2,6 +2,7 @@
 
 - folder restructuration
 - split integration and unit test
+- remove coopling between OpenApi class and ComponentsResolver
 
 # v0.2.2 (2022-04-04)
 
