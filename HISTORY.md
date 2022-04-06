@@ -1,4 +1,4 @@
-# v0.2.2 (2022-04-06)
+# v0.2.3 (2022-04-06)
 
 - folder restructuration
 - split integration and unit test
