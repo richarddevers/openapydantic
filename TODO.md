@@ -8,3 +8,4 @@ Maybe it can be achieved with a different approch (anytree?) (one already remove
 - cd.yaml
 - unit test
 - component model genration (pydantic create_model)
+- not satisfied how OpenApi object and ComponentsResolver interact

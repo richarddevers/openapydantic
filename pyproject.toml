@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openapydantic"
-version = "0.2.2"
+version = "0.2.3"
 description = "openapi specification parser based on pydantic"
 authors = ["Richard Devers <ritchiedev25@gmail.com>"]
 include = ["openapydantic/py.typed"]
@@ -35,6 +35,7 @@ devtools = "^0.8.0"
 safety = "^1.10.3"
 pytest-cov = "^3.0.0"
 pytest-asyncio = "^0.18.2"
+pytest-mock = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,3 +1,9 @@
+# v0.2.3 (2022-04-06)
+
+- folder restructuration
+- split integration and unit test
+- remove coopling between OpenApi class and ComponentsResolver
+
 # v0.2.2 (2022-04-04)
 
 - References finder now based on jsonpath
